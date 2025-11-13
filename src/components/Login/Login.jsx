@@ -223,7 +223,7 @@ const Login = () => {
       )}
       <div className="login-card">
         <div className="login-header">
-          <h1>Student Application</h1>
+          <h1>School Application</h1>
           <p>Sign in to your account</p>
         </div>
 

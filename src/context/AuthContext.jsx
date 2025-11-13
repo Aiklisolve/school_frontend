@@ -19,7 +19,30 @@ const hashPassword = (password) => {
   return `${password}`
 }
 
-// Static/Mock data for student and staff (not using API yet)
+// Map frontend role values to backend role values
+// For admin, check if email/username contains "principal" to determine school_admin vs super_admin
+const mapRoleToBackend = (frontendRole, email = '') => {
+  const roleMap = {
+    'teacher': 'teacher',
+    'parent': 'parent',
+    'student': 'student',
+    'staff': 'staff',
+  }
+  
+  // Special handling for admin: check if email/username contains "principal"
+  if (frontendRole === 'admin') {
+    const emailLower = email.toLowerCase()
+    if (emailLower.includes('principal')) {
+      return 'school_admin'
+    } else {
+      return 'super_admin'
+    }
+  }
+  
+  return roleMap[frontendRole] || frontendRole
+}
+
+// Static/Mock data for student, staff, and admin (not using API yet)
 const MOCK_USERS = {
   student: [
     { email: 'student@school.com', password: 'student123', name: 'John Student', userType: 'student', id: '1' },
@@ -28,21 +51,49 @@ const MOCK_USERS = {
   staff: [
     { email: 'staff@school.com', password: 'staff123', name: 'Admin Staff', userType: 'staff', id: '7' },
     { email: 'staff1@school.com', password: '123456', name: 'Office Staff', userType: 'staff', id: '8' }
+  ],
+  admin: [
+    { email: 'admin@school.com', password: 'admin123', name: 'System Admin', userType: 'admin', id: '9' },
+    { email: 'admin1@school.com', password: '123456', name: 'Super Admin', userType: 'admin', id: '10' }
   ]
 }
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [otp, setOtp] = useState(null)
 
   useEffect(() => {
     // Check if user is already logged in (from localStorage)
     const storedUser = localStorage.getItem('user')
     const storedToken = localStorage.getItem('token')
+    const storedOtp = localStorage.getItem('otp')
     
-    if (storedUser && storedToken) {
-      setUser(JSON.parse(storedUser))
+    // Check if storedUser exists and is not "undefined" string
+    if (storedUser && storedUser !== 'undefined' && storedToken && storedToken !== 'undefined') {
+      try {
+        const parsedUser = JSON.parse(storedUser)
+        if (parsedUser) {
+          setUser(parsedUser)
+        }
+      } catch (error) {
+        console.error('Error parsing stored user:', error)
+        // Clear invalid data
+        localStorage.removeItem('user')
+        localStorage.removeItem('token')
+      }
+    } else {
+      // Clear invalid/undefined data
+      if (storedUser === 'undefined' || storedToken === 'undefined') {
+        localStorage.removeItem('user')
+        localStorage.removeItem('token')
+      }
     }
+    
+    if (storedOtp && storedOtp !== 'undefined') {
+      setOtp(storedOtp)
+    }
+    
     setLoading(false)
   }, [])
 
@@ -51,11 +102,13 @@ export const AuthProvider = ({ children }) => {
     try {
       // Hash the password before sending to API
       const hashedPassword = hashPassword(password)
+      // Map frontend role to backend role format (pass email for admin role detection)
+      const backendRole = mapRoleToBackend(role, email)
       
       const response = await axios.post(`${API_BASE_URL}/auth/login`, {
         step: 'credential_validation',
         login_type: 'email_password',
-        role: role,
+        role: backendRole,
         email: email,
         password: hashedPassword
       })
@@ -72,10 +125,13 @@ export const AuthProvider = ({ children }) => {
   // Step 1: For parents - send OTP
   const sendOTP = async (mobile, role) => {
     try {
+      // Map frontend role to backend role format
+      const backendRole = mapRoleToBackend(role)
+      
       const response = await axios.post(`${API_BASE_URL}/auth/login`, {
         step: 'send_otp',
         login_type: 'mobile',
-        role: role,
+        role: backendRole,
         mobile: mobile
       })
       return { success: true, data: response.data }
@@ -93,11 +149,19 @@ export const AuthProvider = ({ children }) => {
     try {
       const { login_type, role, email, mobile, otp } = loginData
       
+      // Map frontend role to backend role format (pass email for admin role detection)
+      const backendRole = mapRoleToBackend(role, email || mobile)
+      
+      // Calculate current time + 30 minutes
+      const currentTime = new Date()
+      const timeWith30Minutes = new Date(currentTime.getTime() + 30 * 60 * 1000) // Add 30 minutes in milliseconds
+      
       const payload = {
         step: 'final_login',
         login_type: login_type,
-        role: role,
-        otp: otp
+        role: backendRole,
+        otp: otp,
+        expires_at: timeWith30Minutes.toISOString() // Current time + 30 minutes
       }
 
       if (login_type === 'email_password' && email) {
@@ -108,14 +172,34 @@ export const AuthProvider = ({ children }) => {
 
       const response = await axios.post(`${API_BASE_URL}/auth/login`, payload)
       
-      const { user: userData, token } = response.data
+      // Handle different possible response structures
+      const responseData = response.data
+      const userData = responseData.user || responseData.data?.user || responseData
+      const token = responseData.token || responseData.data?.token || responseData.access_token || responseData.jwt
+      
+      if (!token) {
+        console.error('No token received in response:', responseData)
+        return {
+          success: false,
+          error: 'Login successful but no token received. Please try again.'
+        }
+      }
+
+      // Create user object if not provided
+      const finalUserData = userData || {
+        email: email || mobile,
+        userType: role,
+        id: responseData.user_id || responseData.id
+      }
       
       // Store in localStorage
-      localStorage.setItem('user', JSON.stringify(userData))
+      localStorage.setItem('user', JSON.stringify(finalUserData))
       localStorage.setItem('token', token)
       
-      setUser(userData)
-      return { success: true, user: userData }
+      // Set user in context - this will trigger isAuthenticated to be true
+      setUser(finalUserData)
+      
+      return { success: true, user: finalUserData, token: token }
     } catch (error) {
       console.error('Final login error:', error)
       return {
@@ -125,10 +209,10 @@ export const AuthProvider = ({ children }) => {
     }
   }
 
-  // Legacy login function for student and staff (using mock data)
+  // Legacy login function for student, staff, and admin (using mock data)
   const login = async (email, password, userType) => {
-    // Only use mock data for student and staff
-    if (userType === 'student' || userType === 'staff') {
+    // Only use mock data for student, staff, and admin
+    if (userType === 'student' || userType === 'staff' || userType === 'admin') {
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 800))
 
@@ -179,7 +263,9 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     localStorage.removeItem('user')
     localStorage.removeItem('token')
+    localStorage.removeItem('otp')
     setUser(null)
+    setOtp(null)
   }
 
   const value = {
@@ -190,7 +276,9 @@ export const AuthProvider = ({ children }) => {
     finalLogin,
     logout,
     loading,
-    isAuthenticated: !!user
+    isAuthenticated: !!user,
+    otp,
+    setOtp
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

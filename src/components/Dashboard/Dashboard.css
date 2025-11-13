@@ -80,3 +80,37 @@
   margin-top: 16px;
 }
 
+.otp-display {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  padding: 24px;
+  margin: 24px 0;
+  text-align: center;
+  color: white;
+}
+
+.otp-display h3 {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: white;
+}
+
+.otp-code {
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: 8px;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 16px 24px;
+  border-radius: 8px;
+  margin: 16px 0;
+  font-family: 'Courier New', monospace;
+}
+
+.otp-info {
+  margin: 12px 0 0 0;
+  font-size: 14px;
+  opacity: 0.9;
+  color: white;
+}
+

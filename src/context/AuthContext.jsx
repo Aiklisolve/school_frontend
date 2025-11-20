@@ -12,7 +12,7 @@ export const useAuth = () => {
 }
 
 // API base URL
-const API_BASE_URL = 'http://localhost:5000/api'
+const API_BASE_URL = 'http://localhost:3000/api'
 
 // Format password as hash-{password} to match backend expectation
 const hashPassword = (password) => {
@@ -33,9 +33,9 @@ const mapRoleToBackend = (frontendRole, email = '') => {
   if (frontendRole === 'admin') {
     const emailLower = email.toLowerCase()
     if (emailLower.includes('principal')) {
-      return 'school_admin'
+      return 'PRINCIPAL'
     } else {
-      return 'super_admin'
+      return 'ADMIN'
     }
   }
   

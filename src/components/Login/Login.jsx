@@ -29,7 +29,7 @@ const Login = () => {
     { value: 'parent', label: 'Parent' },
     { value: 'student', label: 'Student' },
     { value: 'staff', label: 'School Staff' },
-    { value: 'admin', label: 'Admin' }
+    { value: 'admin', label: 'ADMIN' }
   ]
 
   const validateStep1 = () => {

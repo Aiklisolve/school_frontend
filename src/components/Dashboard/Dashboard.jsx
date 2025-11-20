@@ -1,10 +1,13 @@
 import React, { useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
+import { useState } from 'react'
+import ParentRegistration from '../ParentRegistration/ParentRegistration'
 
 const Dashboard = () => {
   const { user, logout, otp, setOtp } = useAuth()
   const navigate = useNavigate()
+  const [activeTab, setActiveTab] = useState('registration')
 
   // Check localStorage for OTP on mount and sync with context
   useEffect(() => {
@@ -32,6 +35,34 @@ const Dashboard = () => {
     return labels[type] || type
   }
 
+  // Robust parent-role check: look at multiple possible fields and localStorage fallback
+  const isParentUser = (() => {
+    try {
+      const local = localStorage.getItem('user')
+      const localParsed = local ? JSON.parse(local) : null
+      const u = user || localParsed
+      if (!u) return false
+
+      const roleCandidates = [u.userType, u.user_type, u.role, u.type, u.roleName, u.role_name]
+      for (let r of roleCandidates) {
+        if (!r) continue
+        const s = String(r).toLowerCase()
+        if (s.includes('parent')) return true
+      }
+
+      // Also check nested fields that some APIs return
+      if (u?.roles && Array.isArray(u.roles)) {
+        for (const r of u.roles) {
+          if (String(r).toLowerCase().includes('parent')) return true
+        }
+      }
+
+      return false
+    } catch (e) {
+      return false
+    }
+  })()
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-white px-8 py-6 shadow-md flex justify-between items-center">
@@ -49,22 +80,73 @@ const Dashboard = () => {
         </button>
       </div>
 
-      <div className="p-8 max-w-6xl mx-auto">
-        <div className="bg-white rounded-xl p-8 shadow-md">
-          <h2 className="text-gray-900 m-0 mb-4 text-xl">Dashboard</h2>
-          <p className="text-gray-600 leading-relaxed my-2">You have successfully logged in as a {getUserTypeLabel(user?.userType)}.</p>
-          {/* {(otp || localStorage.getItem('otp')) && (
-            <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl p-6 my-6 text-center text-white">
-              <h3 className="m-0 mb-4 text-lg font-semibold text-white">Your OTP</h3>
-              <div className="text-3xl font-bold tracking-widest bg-white/20 px-6 py-4 rounded-lg my-4 font-mono">
-                {otp || localStorage.getItem('otp')}
+      <div className="p-6 max-w-6xl mx-auto">
+        <div className="bg-white rounded-xl p-6 shadow-md">
+          <div className="flex items-center justify-between">
+            <h2 className="text-gray-900 m-0 mb-2 text-xl">Dashboard</h2>
+            <p className="text-gray-600 text-sm">You are a {getUserTypeLabel(user?.userType)}</p>
+          </div>
+
+          <div className="mt-6">
+            {user?.userType === 'PARENT' ? (
+              <>
+                {/* Tabs */}
+                <div className="flex gap-2 border-b pb-2">
+                  {['registration','upload','chat','meeting','calendar'].map(tab => (
+                    <button
+                      key={tab}
+                      onClick={() => setActiveTab(tab)}
+                      className={`px-3 py-1 rounded-t-md -mb-px ${activeTab===tab ? 'bg-white border border-b-0 border-gray-200 text-gray-800' : 'text-gray-500'}`}
+                    >
+                      {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="mt-4">
+                  {activeTab === 'registration' && (
+                    <div>
+                      <h3 className="text-lg font-semibold mb-3">Parent Registration</h3>
+                      <ParentRegistration />
+                    </div>
+                  )}
+
+                  {activeTab === 'upload' && (
+                    <div className="p-6 bg-white rounded-md shadow-sm">
+                      <h3 className="text-lg font-semibold mb-2">Upload</h3>
+                      <p className="text-sm text-gray-600">Upload documents and images here (placeholder).</p>
+                    </div>
+                  )}
+
+                  {activeTab === 'chat' && (
+                    <div className="p-6 bg-white rounded-md shadow-sm">
+                      <h3 className="text-lg font-semibold mb-2">Chat AI</h3>
+                      <p className="text-sm text-gray-600">Chat with AI assistant (placeholder).</p>
+                    </div>
+                  )}
+
+                  {activeTab === 'meeting' && (
+                    <div className="p-6 bg-white rounded-md shadow-sm">
+                      <h3 className="text-lg font-semibold mb-2">Meeting Scheduler</h3>
+                      <p className="text-sm text-gray-600">Schedule parent-teacher meetings here (placeholder).</p>
+                    </div>
+                  )}
+
+                  {activeTab === 'calendar' && (
+                    <div className="p-6 bg-white rounded-md shadow-sm">
+                      <h3 className="text-lg font-semibold mb-2">Calendar</h3>
+                      <p className="text-sm text-gray-600">Calendar view (placeholder).</p>
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              <div className="p-6 bg-white rounded-md shadow-sm">
+                <h3 className="text-lg font-semibold mb-2">Dashboard</h3>
+                <p className="text-sm text-gray-600">These tabs are available for Parent users only. Your role: <span className="font-medium">{getUserTypeLabel(user?.userType)}</span></p>
               </div>
-              <p className="my-3 text-sm opacity-90 text-white">This OTP was sent during login</p>
-            </div>
-          )} */}
-          <p className="text-gray-500 text-sm italic mt-4">
-            This is a placeholder dashboard. The full dashboard will be implemented based on your user role.
-          </p>
+            )}
+          </div>
         </div>
       </div>
     </div>

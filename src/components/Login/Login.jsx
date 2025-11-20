@@ -14,6 +14,7 @@ const Login = () => {
   const [errors, setErrors] = useState({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showSuccessPopup, setShowSuccessPopup] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   const { login, validateCredentials, sendOTP, finalLogin, isAuthenticated, otp, setOtp } = useAuth()
   const navigate = useNavigate()
@@ -25,10 +26,10 @@ const Login = () => {
   }, [isAuthenticated, navigate])
 
   const userTypes = [
-    { value: 'teacher', label: 'Teacher' },
-    { value: 'parent', label: 'Parent' },
-    { value: 'student', label: 'Student' },
-    { value: 'staff', label: 'School Staff' },
+    { value: 'teacher', label: 'TEACHER' },
+    { value: 'parent', label: 'PARENT' },
+    { value: 'student', label: 'STUDENT' },
+    // { value: 'staff', label: 'School Staff' },
     { value: 'admin', label: 'ADMIN' }
   ]
 
@@ -74,15 +75,46 @@ const Login = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target
+    
+    // For mobile field, only allow digits and limit to 10 digits
+    let processedValue = value
+    if (name === 'mobile') {
+      // Remove all non-digit characters
+      processedValue = value.replace(/\D/g, '')
+      // Limit to exactly 10 digits
+      if (processedValue.length > 10) {
+        processedValue = processedValue.slice(0, 10)
+      }
+    }
+    
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: processedValue
     }))
     // Clear error for this field when user starts typing
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
         [name]: ''
+      }))
+    }
+  }
+
+  const handleMobilePaste = (e) => {
+    e.preventDefault()
+    const pastedText = (e.clipboardData || window.clipboardData).getData('text')
+    // Remove all non-digit characters and limit to 10 digits
+    const digitsOnly = pastedText.replace(/\D/g, '').slice(0, 10)
+    
+    setFormData(prev => ({
+      ...prev,
+      mobile: digitsOnly
+    }))
+    // Clear error if any
+    if (errors.mobile) {
+      setErrors(prev => ({
+        ...prev,
+        mobile: ''
       }))
     }
   }
@@ -112,8 +144,9 @@ const Login = () => {
     
     try {
       if (formData.userType === 'parent') {
-        // Parent: Send OTP via mobile
-        const result = await sendOTP(formData.mobile, 'parent')
+        // Parent: Send OTP via mobile (prepend +91 country code)
+        const mobileWithCountryCode = `+91${formData.mobile}`
+        const result = await sendOTP(mobileWithCountryCode, 'parent')
         
         if (result.success) {
           // Store OTP from response - API returns OTP directly in response.data.otp
@@ -184,7 +217,8 @@ const Login = () => {
       }
 
       if (formData.userType === 'parent') {
-        loginData.mobile = formData.mobile
+        // Prepend +91 country code when sending to API
+        loginData.mobile = `+91${formData.mobile}`
       } else {
         loginData.email = formData.email
       }
@@ -260,11 +294,33 @@ const Login = () => {
                   name="mobile"
                   value={formData.mobile}
                   onChange={handleChange}
+                  onPaste={handleMobilePaste}
+                  onKeyDown={(e) => {
+                    // Allow: backspace, delete, tab, escape, enter, and arrow keys
+                    if ([8, 9, 27, 13, 46, 37, 38, 39, 40].includes(e.keyCode) ||
+                        // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
+                        (e.keyCode === 65 && e.ctrlKey === true) ||
+                        (e.keyCode === 67 && e.ctrlKey === true) ||
+                        (e.keyCode === 86 && e.ctrlKey === true) ||
+                        (e.keyCode === 88 && e.ctrlKey === true)) {
+                      return
+                    }
+                    // Ensure that it is a number and stop the keypress if not
+                    if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
+                      e.preventDefault()
+                    }
+                    // Prevent typing if already 10 digits (unless it's a deletion key)
+                    if (formData.mobile.length >= 10 && ![8, 46].includes(e.keyCode)) {
+                      e.preventDefault()
+                    }
+                  }}
                   className={`px-4 py-3 border-2 rounded-lg text-base transition-all duration-200 bg-white text-gray-900 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 disabled:opacity-50 disabled:cursor-not-allowed ${
                     errors.mobile ? 'border-red-500 focus:border-red-500 focus:ring-red-500/10' : 'border-gray-200'
                   }`}
                   placeholder="Enter your 10-digit mobile number"
                   maxLength="10"
+                  inputMode="numeric"
+                  pattern="[0-9]{10}"
                   disabled={step === 2}
                 />
                 {errors.mobile && <span className="text-red-600 text-[13px] -mt-1">{errors.mobile}</span>}
@@ -293,19 +349,39 @@ const Login = () => {
 
               <div className="flex flex-col gap-2">
                 <label htmlFor="password" className="text-gray-700 text-sm font-semibold">Password</label>
-                <input
-                  type="password"
-                  id="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  className={`px-4 py-3 border-2 rounded-lg text-base transition-all duration-200 bg-white text-gray-900 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 disabled:opacity-50 disabled:cursor-not-allowed ${
-                    errors.password ? 'border-red-500 focus:border-red-500 focus:ring-red-500/10' : 'border-gray-200'
-                  }`}
-                  placeholder="Enter your password"
-                  autoComplete="current-password"
-                  disabled={step === 2}
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    id="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    className={`w-full px-4 py-3 pr-12 border-2 rounded-lg text-base transition-all duration-200 bg-white text-gray-900 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 disabled:opacity-50 disabled:cursor-not-allowed ${
+                      errors.password ? 'border-red-500 focus:border-red-500 focus:ring-red-500/10' : 'border-gray-200'
+                    }`}
+                    placeholder="Enter your password"
+                    autoComplete="current-password"
+                    disabled={step === 2}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    disabled={step === 2}
+                  >
+                    {showPassword ? (
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                      </svg>
+                    ) : (
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
                 {errors.password && <span className="text-red-600 text-[13px] -mt-1">{errors.password}</span>}
               </div>
             </>
@@ -366,3 +442,4 @@ const Login = () => {
 }
 
 export default Login
+

@@ -14,9 +14,14 @@ export const useAuth = () => {
 // API base URL
 const API_BASE_URL = 'http://localhost:3000/api'
 
-// Format password as hash-{password} to match backend expectation
-const hashPassword = (password) => {
-  return `${password}`
+// Hash password using Web Crypto API (SHA-256)
+const hashPassword = async (password) => {
+  const encoder = new TextEncoder()
+  const data = encoder.encode(password)
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data)
+  const hashArray = Array.from(new Uint8Array(hashBuffer))
+  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+  return hashHex
 }
 
 // Map frontend role values to backend role values
@@ -101,7 +106,7 @@ export const AuthProvider = ({ children }) => {
   const validateCredentials = async (email, password, role) => {
     try {
       // Hash the password before sending to API
-      const hashedPassword = hashPassword(password)
+      const hashedPassword = await hashPassword(password)
       // Map frontend role to backend role format (pass email for admin role detection)
       const backendRole = mapRoleToBackend(role, email)
       

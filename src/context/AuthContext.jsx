@@ -23,10 +23,10 @@ const hashPassword = (password) => {
 // For admin, check if email/username contains "principal" to determine school_admin vs super_admin
 const mapRoleToBackend = (frontendRole, email = '') => {
   const roleMap = {
-    'teacher': 'teacher',
-    'parent': 'parent',
-    'student': 'student',
-    'staff': 'staff',
+    'teacher': 'TEACHER',
+    'parent': 'PARENT',
+    'student': 'STUDENT',
+    'staff': 'STAFF',
   }
   
   // Special handling for admin: check if email/username contains "principal"

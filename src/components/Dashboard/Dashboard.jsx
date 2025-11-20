@@ -498,6 +498,216 @@ const Dashboard = () => {
     const [userErrors, setUserErrors] = useState({})
     const [userSubmitting, setUserSubmitting] = useState(false)
     const [showPassword, setShowPassword] = useState(false)
+    const [schoolsList, setSchoolsList] = useState([])
+    const [loadingSchools, setLoadingSchools] = useState(false)
+    const [schoolsPage, setSchoolsPage] = useState(1)
+    const [schoolsTotalPages, setSchoolsTotalPages] = useState(1)
+    const [schoolsLimit] = useState(10)
+    
+    const [branchesList, setBranchesList] = useState([])
+    const [loadingBranches, setLoadingBranches] = useState(false)
+    const [branchesPage, setBranchesPage] = useState(1)
+    const [branchesTotalPages, setBranchesTotalPages] = useState(1)
+    const [branchesLimit] = useState(5)
+    
+    // Fetch schools list from API with pagination
+    const fetchSchools = async (page = 1, limit = 10) => {
+      setLoadingSchools(true)
+      try {
+        const response = await axios.get(`${API_BASE_URL}/schools`, {
+          headers: { 'Content-Type': 'application/json' },
+          params: {
+            page: page,
+            limit: limit
+          }
+        })
+        
+        let schools = []
+        
+        // Handle paginated response structure - API returns { "data": [...] }
+        if (response.data && response.data.data) {
+          // If data is an array (most common structure: { data: [...] })
+          if (Array.isArray(response.data.data)) {
+            schools = response.data.data
+          } 
+          // If data is an object with schools array
+          else if (response.data.data && Array.isArray(response.data.data.schools)) {
+            schools = response.data.data.schools
+          } 
+          // If data is an object with list array
+          else if (Array.isArray(response.data.data.list)) {
+            schools = response.data.data.list
+          } 
+          // If data is an object with records array
+          else if (Array.isArray(response.data.data.records)) {
+            schools = response.data.data.records
+          }
+        } 
+        // Direct array response
+        else if (Array.isArray(response.data)) {
+          schools = response.data
+        }
+        
+        setSchoolsList(schools)
+        
+        // Extract pagination info from response (if available)
+        if (response.data && response.data.pagination) {
+          setSchoolsTotalPages(response.data.pagination.total_pages || response.data.pagination.totalPages || 1)
+        } else if (response.data && response.data.total_pages) {
+          setSchoolsTotalPages(response.data.total_pages)
+        } else if (response.data && response.data.totalPages) {
+          setSchoolsTotalPages(response.data.totalPages)
+        } else {
+          // Estimate total pages based on current data length
+          // If we got full limit (10 schools), there might be more pages
+          if (schools.length === limit) {
+            // Assume there are more pages (set to current page + 1, will be updated if we reach end)
+            setSchoolsTotalPages(page + 1)
+          } else {
+            // This is likely the last page
+            setSchoolsTotalPages(page)
+          }
+        }
+        
+        // Update current page
+        setSchoolsPage(page)
+        
+      } catch (error) {
+        console.error('Error fetching schools:', error)
+        setSchoolsList([])
+        setSchoolsTotalPages(1)
+      } finally {
+        setLoadingSchools(false)
+      }
+    }
+    
+    // Handle school pagination
+    const handleSchoolPageChange = (newPage) => {
+      if (newPage >= 1 && newPage !== schoolsPage && !loadingSchools) {
+        setSchoolsPage(newPage)
+        fetchSchools(newPage, schoolsLimit)
+      }
+    }
+    
+    // Clear school selection if selected school is not in current page list
+    useEffect(() => {
+      if (userForm.school_id && schoolsList.length > 0) {
+        const schoolExists = schoolsList.some(school => school.school_id === userForm.school_id)
+        if (!schoolExists) {
+          // Clear selection if school is not in current page
+          setUserForm(prev => ({ ...prev, school_id: '' }))
+          if (userErrors.school_id) {
+            setUserErrors(prev => ({ ...prev, school_id: '' }))
+          }
+        }
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [schoolsList])
+    
+    // Fetch branches list from API with pagination
+    const fetchBranches = async (page = 1, limit = 5) => {
+      setLoadingBranches(true)
+      try {
+        const response = await axios.get(`${API_BASE_URL}/branches`, {
+          headers: { 'Content-Type': 'application/json' },
+          params: {
+            page: page,
+            limit: limit
+          }
+        })
+        
+        let branches = []
+        
+        // Handle paginated response structure - API returns { "data": [...] }
+        if (response.data && response.data.data) {
+          // If data is an array (most common structure: { data: [...] })
+          if (Array.isArray(response.data.data)) {
+            branches = response.data.data
+          } 
+          // If data is an object with branches array
+          else if (response.data.data && Array.isArray(response.data.data.branches)) {
+            branches = response.data.data.branches
+          } 
+          // If data is an object with list array
+          else if (Array.isArray(response.data.data.list)) {
+            branches = response.data.data.list
+          } 
+          // If data is an object with records array
+          else if (Array.isArray(response.data.data.records)) {
+            branches = response.data.data.records
+          }
+        } 
+        // Direct array response
+        else if (Array.isArray(response.data)) {
+          branches = response.data
+        }
+        
+        setBranchesList(branches)
+        
+        // Extract pagination info from response (if available)
+        if (response.data && response.data.pagination) {
+          setBranchesTotalPages(response.data.pagination.total_pages || response.data.pagination.totalPages || 1)
+        } else if (response.data && response.data.total_pages) {
+          setBranchesTotalPages(response.data.total_pages)
+        } else if (response.data && response.data.totalPages) {
+          setBranchesTotalPages(response.data.totalPages)
+        } else {
+          // Estimate total pages based on current data length
+          // If we got full limit (5 branches), there might be more pages
+          if (branches.length === limit) {
+            // Assume there are more pages (set to current page + 1, will be updated if we reach end)
+            setBranchesTotalPages(page + 1)
+          } else {
+            // This is likely the last page
+            setBranchesTotalPages(page)
+          }
+        }
+        
+        // Update current page
+        setBranchesPage(page)
+        
+      } catch (error) {
+        console.error('Error fetching branches:', error)
+        setBranchesList([])
+        setBranchesTotalPages(1)
+      } finally {
+        setLoadingBranches(false)
+      }
+    }
+    
+    // Handle branch pagination
+    const handleBranchPageChange = (newPage) => {
+      if (newPage >= 1 && newPage !== branchesPage && !loadingBranches) {
+        setBranchesPage(newPage)
+        fetchBranches(newPage, branchesLimit)
+      }
+    }
+    
+    // Clear branch selection if selected branch is not in current page list
+    useEffect(() => {
+      if (userForm.branch_id && branchesList.length > 0) {
+        const branchExists = branchesList.some(branch => branch.branch_id === userForm.branch_id || branch.branch_id === String(userForm.branch_id))
+        if (!branchExists) {
+          // Clear selection if branch is not in current page
+          setUserForm(prev => ({ ...prev, branch_id: '' }))
+          if (userErrors.branch_id) {
+            setUserErrors(prev => ({ ...prev, branch_id: '' }))
+          }
+        }
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [branchesList, branchesPage])
+    
+    // Fetch schools when Users Registration tab is active
+    useEffect(() => {
+      if (registrationType === 'users') {
+        setSchoolsPage(1)
+        fetchSchools(1, schoolsLimit) // Fetch first page with 10 schools
+        setBranchesPage(1)
+        fetchBranches(1, branchesLimit) // Fetch first page with 5 branches
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [registrationType])
     
     // Helper to load SweetAlert2 from CDN if not present
     const loadSwal = async () => {
@@ -610,10 +820,7 @@ const Dashboard = () => {
         }
       }
       
-      // For school_id and branch_id, only allow digits
-      if (name === 'school_id' || name === 'branch_id') {
-        processedValue = value.replace(/\D/g, '')
-      }
+      // branch_id is now dropdown, no need to restrict to digits
       
       setUserForm(prev => ({
         ...prev,
@@ -745,6 +952,464 @@ const Dashboard = () => {
     const [studentErrors, setStudentErrors] = useState({})
     const [studentSubmitting, setStudentSubmitting] = useState(false)
     
+    // Student Registration - Schools and Branches State
+    const [studentSchoolsList, setStudentSchoolsList] = useState([])
+    const [loadingStudentSchools, setLoadingStudentSchools] = useState(false)
+    const [studentSchoolsPage, setStudentSchoolsPage] = useState(1)
+    const [studentSchoolsTotalPages, setStudentSchoolsTotalPages] = useState(1)
+    const [studentSchoolsLimit] = useState(10)
+    
+    const [studentBranchesList, setStudentBranchesList] = useState([])
+    const [loadingStudentBranches, setLoadingStudentBranches] = useState(false)
+    const [studentBranchesPage, setStudentBranchesPage] = useState(1)
+    const [studentBranchesTotalPages, setStudentBranchesTotalPages] = useState(1)
+    const [studentBranchesLimit] = useState(5)
+    
+    // Fetch schools for Student Registration
+    const fetchStudentSchools = async (page = 1, limit = 10) => {
+      setLoadingStudentSchools(true)
+      try {
+        const response = await axios.get(`${API_BASE_URL}/schools`, {
+          headers: { 'Content-Type': 'application/json' },
+          params: {
+            page: page,
+            limit: limit
+          }
+        })
+        
+        let schools = []
+        
+        if (response.data && response.data.data) {
+          if (Array.isArray(response.data.data)) {
+            schools = response.data.data
+          } else if (response.data.data && Array.isArray(response.data.data.schools)) {
+            schools = response.data.data.schools
+          } else if (Array.isArray(response.data.data.list)) {
+            schools = response.data.data.list
+          } else if (Array.isArray(response.data.data.records)) {
+            schools = response.data.data.records
+          }
+        } else if (Array.isArray(response.data)) {
+          schools = response.data
+        }
+        
+        setStudentSchoolsList(schools)
+        
+        // Extract pagination info
+        if (response.data && response.data.pagination) {
+          setStudentSchoolsTotalPages(response.data.pagination.total_pages || response.data.pagination.totalPages || 1)
+        } else if (response.data && response.data.total_pages) {
+          setStudentSchoolsTotalPages(response.data.total_pages)
+        } else if (response.data && response.data.totalPages) {
+          setStudentSchoolsTotalPages(response.data.totalPages)
+        } else {
+          if (schools.length === limit) {
+            setStudentSchoolsTotalPages(page + 1)
+          } else {
+            setStudentSchoolsTotalPages(page)
+          }
+        }
+        
+        setStudentSchoolsPage(page)
+      } catch (error) {
+        console.error('Error fetching schools for student:', error)
+        setStudentSchoolsList([])
+        setStudentSchoolsTotalPages(1)
+      } finally {
+        setLoadingStudentSchools(false)
+      }
+    }
+    
+    // Fetch branches for Student Registration
+    const fetchStudentBranches = async (page = 1, limit = 5) => {
+      setLoadingStudentBranches(true)
+      try {
+        const response = await axios.get(`${API_BASE_URL}/branches`, {
+          headers: { 'Content-Type': 'application/json' },
+          params: {
+            page: page,
+            limit: limit
+          }
+        })
+        
+        let branches = []
+        
+        if (response.data && response.data.data) {
+          if (Array.isArray(response.data.data)) {
+            branches = response.data.data
+          } else if (response.data.data && Array.isArray(response.data.data.branches)) {
+            branches = response.data.data.branches
+          } else if (Array.isArray(response.data.data.list)) {
+            branches = response.data.data.list
+          } else if (Array.isArray(response.data.data.records)) {
+            branches = response.data.data.records
+          }
+        } else if (Array.isArray(response.data)) {
+          branches = response.data
+        }
+        
+        setStudentBranchesList(branches)
+        
+        // Extract pagination info
+        if (response.data && response.data.pagination) {
+          setStudentBranchesTotalPages(response.data.pagination.total_pages || response.data.pagination.totalPages || 1)
+        } else if (response.data && response.data.total_pages) {
+          setStudentBranchesTotalPages(response.data.total_pages)
+        } else if (response.data && response.data.totalPages) {
+          setStudentBranchesTotalPages(response.data.totalPages)
+        } else {
+          if (branches.length === limit) {
+            setStudentBranchesTotalPages(page + 1)
+          } else {
+            setStudentBranchesTotalPages(page)
+          }
+        }
+        
+        setStudentBranchesPage(page)
+      } catch (error) {
+        console.error('Error fetching branches for student:', error)
+        setStudentBranchesList([])
+        setStudentBranchesTotalPages(1)
+      } finally {
+        setLoadingStudentBranches(false)
+      }
+    }
+    
+    // Handle student school pagination
+    const handleStudentSchoolPageChange = (newPage) => {
+      if (newPage >= 1 && newPage !== studentSchoolsPage && !loadingStudentSchools) {
+        setStudentSchoolsPage(newPage)
+        fetchStudentSchools(newPage, studentSchoolsLimit)
+      }
+    }
+    
+    // Handle student branch pagination
+    const handleStudentBranchPageChange = (newPage) => {
+      if (newPage >= 1 && newPage !== studentBranchesPage && !loadingStudentBranches) {
+        setStudentBranchesPage(newPage)
+        fetchStudentBranches(newPage, studentBranchesLimit)
+      }
+    }
+    
+    // Clear student school/branch selection if not in current page list
+    useEffect(() => {
+      if (studentForm.school_id && studentSchoolsList.length > 0) {
+        const schoolExists = studentSchoolsList.some(school => school.school_id === studentForm.school_id || school.school_id === String(studentForm.school_id))
+        if (!schoolExists) {
+          setStudentForm(prev => ({ ...prev, school_id: '' }))
+          if (studentErrors.school_id) {
+            setStudentErrors(prev => ({ ...prev, school_id: '' }))
+          }
+        }
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [studentSchoolsList, studentSchoolsPage])
+    
+    useEffect(() => {
+      if (studentForm.branch_id && studentBranchesList.length > 0) {
+        const branchExists = studentBranchesList.some(branch => branch.branch_id === studentForm.branch_id || branch.branch_id === String(studentForm.branch_id))
+        if (!branchExists) {
+          setStudentForm(prev => ({ ...prev, branch_id: '' }))
+          if (studentErrors.branch_id) {
+            setStudentErrors(prev => ({ ...prev, branch_id: '' }))
+          }
+        }
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [studentBranchesList, studentBranchesPage])
+    
+    // Fetch schools and branches when Student Registration tab is active
+    useEffect(() => {
+      if (registrationType === 'student') {
+        setStudentSchoolsPage(1)
+        fetchStudentSchools(1, studentSchoolsLimit)
+        setStudentBranchesPage(1)
+        fetchStudentBranches(1, studentBranchesLimit)
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [registrationType])
+    
+    // Parent Registration State
+    const [parentForm, setParentForm] = useState({
+      school_id: '',
+      full_name: '',
+      phone: '',
+      whatsapp_number: '',
+      email: '',
+      occupation: '',
+      annual_income_range: '',
+      education_level: '',
+      address_line1: '',
+      address_line2: '',
+      city: '',
+      state: '',
+      pincode: ''
+    })
+    const [parentErrors, setParentErrors] = useState({})
+    const [parentSubmitting, setParentSubmitting] = useState(false)
+    
+    // Parent Registration - Schools State
+    const [parentSchoolsList, setParentSchoolsList] = useState([])
+    const [loadingParentSchools, setLoadingParentSchools] = useState(false)
+    const [parentSchoolsPage, setParentSchoolsPage] = useState(1)
+    const [parentSchoolsTotalPages, setParentSchoolsTotalPages] = useState(1)
+    const [parentSchoolsLimit] = useState(10)
+    
+    // Fetch schools for Parent Registration
+    const fetchParentSchools = async (page = 1, limit = 10) => {
+      setLoadingParentSchools(true)
+      try {
+        const response = await axios.get(`${API_BASE_URL}/schools`, {
+          headers: { 'Content-Type': 'application/json' },
+          params: {
+            page: page,
+            limit: limit
+          }
+        })
+        
+        let schools = []
+        
+        if (response.data && response.data.data) {
+          if (Array.isArray(response.data.data)) {
+            schools = response.data.data
+          } else if (response.data.data && Array.isArray(response.data.data.schools)) {
+            schools = response.data.data.schools
+          } else if (Array.isArray(response.data.data.list)) {
+            schools = response.data.data.list
+          } else if (Array.isArray(response.data.data.records)) {
+            schools = response.data.data.records
+          }
+        } else if (Array.isArray(response.data)) {
+          schools = response.data
+        }
+        
+        setParentSchoolsList(schools)
+        
+        // Extract pagination info
+        if (response.data && response.data.pagination) {
+          setParentSchoolsTotalPages(response.data.pagination.total_pages || response.data.pagination.totalPages || 1)
+        } else if (response.data && response.data.total_pages) {
+          setParentSchoolsTotalPages(response.data.total_pages)
+        } else if (response.data && response.data.totalPages) {
+          setParentSchoolsTotalPages(response.data.totalPages)
+        } else {
+          if (schools.length === limit) {
+            setParentSchoolsTotalPages(page + 1)
+          } else {
+            setParentSchoolsTotalPages(page)
+          }
+        }
+        
+        setParentSchoolsPage(page)
+      } catch (error) {
+        console.error('Error fetching schools for parent:', error)
+        setParentSchoolsList([])
+        setParentSchoolsTotalPages(1)
+      } finally {
+        setLoadingParentSchools(false)
+      }
+    }
+    
+    // Handle parent school pagination
+    const handleParentSchoolPageChange = (newPage) => {
+      if (newPage >= 1 && newPage !== parentSchoolsPage && !loadingParentSchools) {
+        setParentSchoolsPage(newPage)
+        fetchParentSchools(newPage, parentSchoolsLimit)
+      }
+    }
+    
+    // Clear parent school selection if not in current page list
+    useEffect(() => {
+      if (parentForm.school_id && parentSchoolsList.length > 0) {
+        const schoolExists = parentSchoolsList.some(school => school.school_id === parentForm.school_id || school.school_id === String(parentForm.school_id))
+        if (!schoolExists) {
+          setParentForm(prev => ({ ...prev, school_id: '' }))
+          if (parentErrors.school_id) {
+            setParentErrors(prev => ({ ...prev, school_id: '' }))
+          }
+        }
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [parentSchoolsList, parentSchoolsPage])
+    
+    // Fetch schools when Parent Registration tab is active
+    useEffect(() => {
+      if (registrationType === 'parent') {
+        setParentSchoolsPage(1)
+        fetchParentSchools(1, parentSchoolsLimit)
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [registrationType])
+    
+    // Parent Form Validation
+    const validateParentForm = () => {
+      const errors = {}
+      
+      if (!parentForm.school_id) {
+        errors.school_id = 'School ID is required'
+      }
+      
+      if (!parentForm.full_name.trim()) {
+        errors.full_name = 'Full name is required'
+      } else if (parentForm.full_name.trim().length < 3) {
+        errors.full_name = 'Full name must be at least 3 characters'
+      }
+      
+      const phoneRegex = /^[6-9]\d{9}$/
+      if (!parentForm.phone || !phoneRegex.test(parentForm.phone)) {
+        errors.phone = 'Please enter a valid 10-digit phone number starting with 6-9'
+      }
+      
+      if (!parentForm.whatsapp_number || !phoneRegex.test(parentForm.whatsapp_number)) {
+        errors.whatsapp_number = 'Please enter a valid 10-digit WhatsApp number starting with 6-9'
+      }
+      
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!parentForm.email || !emailRegex.test(parentForm.email)) {
+        errors.email = 'Please enter a valid email address'
+      }
+      
+      if (!parentForm.occupation.trim()) {
+        errors.occupation = 'Occupation is required'
+      }
+      
+      if (!parentForm.annual_income_range) {
+        errors.annual_income_range = 'Annual income range is required'
+      }
+      
+      if (!parentForm.education_level) {
+        errors.education_level = 'Education level is required'
+      }
+      
+      if (!parentForm.address_line1.trim()) {
+        errors.address_line1 = 'Address line 1 is required'
+      }
+      
+      if (!parentForm.city.trim()) {
+        errors.city = 'City is required'
+      }
+      
+      if (!parentForm.state.trim()) {
+        errors.state = 'State is required'
+      }
+      
+      const pinRegex = /^\d{6}$/
+      if (!parentForm.pincode || !pinRegex.test(parentForm.pincode)) {
+        errors.pincode = 'Please enter a valid 6-digit pin code'
+      }
+      
+      setParentErrors(errors)
+      return Object.keys(errors).length === 0
+    }
+    
+    // Handle Parent Form Change
+    const handleParentFormChange = (e) => {
+      const { name, value } = e.target
+      
+      // For phone, whatsapp_number, pincode, only allow digits
+      let processedValue = value
+      if (name === 'phone' || name === 'whatsapp_number' || name === 'pincode') {
+        processedValue = value.replace(/\D/g, '') // Remove all non-digit characters
+        if ((name === 'phone' || name === 'whatsapp_number') && processedValue.length > 10) {
+          processedValue = processedValue.slice(0, 10)
+        }
+        if (name === 'pincode' && processedValue.length > 6) {
+          processedValue = processedValue.slice(0, 6)
+        }
+      }
+      
+      setParentForm(prev => ({
+        ...prev,
+        [name]: processedValue || value
+      }))
+      
+      // Clear error for this field
+      if (parentErrors[name]) {
+        setParentErrors(prev => ({
+          ...prev,
+          [name]: ''
+        }))
+      }
+    }
+    
+    // Handle Parent Form Submit
+    const handleParentSubmit = async (e) => {
+      e.preventDefault()
+      
+      if (!validateParentForm()) {
+        return
+      }
+      
+      setParentSubmitting(true)
+      
+      try {
+        const payload = {
+          school_id: parseInt(parentForm.school_id),
+          full_name: parentForm.full_name,
+          phone: parentForm.phone,
+          whatsapp_number: parentForm.whatsapp_number,
+          email: parentForm.email,
+          occupation: parentForm.occupation,
+          annual_income_range: parentForm.annual_income_range,
+          education_level: parentForm.education_level,
+          address_line1: parentForm.address_line1,
+          address_line2: parentForm.address_line2 || '',
+          city: parentForm.city,
+          state: parentForm.state,
+          pincode: parentForm.pincode
+        }
+        
+        const response = await axios.post(`${API_BASE_URL}/parents/register`, payload, {
+          headers: { 'Content-Type': 'application/json' }
+        })
+        
+        // Show SweetAlert2 success message
+        const Swal = await loadSwal()
+        Swal.fire({
+          icon: 'success',
+          title: 'Success!',
+          text: response.data?.message || 'Parent registered successfully!',
+          timer: 3000,
+          timerProgressBar: true,
+          showConfirmButton: false,
+          toast: true,
+          position: 'top-end'
+        })
+        
+        // Reset form
+        setParentForm({
+          school_id: '',
+          full_name: '',
+          phone: '',
+          whatsapp_number: '',
+          email: '',
+          occupation: '',
+          annual_income_range: '',
+          education_level: '',
+          address_line1: '',
+          address_line2: '',
+          city: '',
+          state: '',
+          pincode: ''
+        })
+        
+      } catch (error) {
+        const errorMsg = error.response?.data?.message || 'Failed to register parent. Please try again.'
+        try {
+          const Swal = await loadSwal()
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: errorMsg
+          })
+        } catch (swalError) {
+          alert(errorMsg)
+        }
+      } finally {
+        setParentSubmitting(false)
+      }
+    }
+    
     // Student Form Validation
     const validateStudentForm = () => {
       const errors = {}
@@ -841,9 +1506,9 @@ const Dashboard = () => {
     const handleStudentFormChange = (e) => {
       const { name, value, type, checked } = e.target
       
-      // For phone, pincode, aadhar, school_id, branch_id, only allow digits
+      // For phone, pincode, aadhar, only allow digits (school_id and branch_id are now dropdowns)
       let processedValue = value
-      if (name === 'emergency_contact_phone' || name === 'pincode' || name === 'aadhar_number' || name === 'school_id' || name === 'branch_id') {
+      if (name === 'emergency_contact_phone' || name === 'pincode' || name === 'aadhar_number') {
         processedValue = value.replace(/\D/g, '') // Remove all non-digit characters
         if (name === 'emergency_contact_phone' && processedValue.length > 10) {
           processedValue = processedValue.slice(0, 10)
@@ -1339,31 +2004,121 @@ const Dashboard = () => {
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                               <label className="block text-sm font-semibold text-gray-700 mb-2">School ID <span className="text-red-500">*</span></label>
-                              <input
-                                type="text"
+                              <select
                                 name="school_id"
                                 value={userForm.school_id}
                                 onChange={handleUserFormChange}
+                                disabled={loadingSchools}
                                 className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
                                   userErrors.school_id ? 'border-red-500' : 'border-gray-300'
-                                }`}
-                                placeholder="Enter school ID"
-                              />
+                                } ${loadingSchools ? 'opacity-50 cursor-not-allowed' : ''}`}
+                              >
+                                <option value="">
+                                  {loadingSchools ? 'Loading schools...' : 'Select school'}
+                                </option>
+                                {schoolsList.map((school) => (
+                                  <option key={school.school_id} value={school.school_id}>
+                                    {school.school_id} - {school.school_name}
+                                  </option>
+                                ))}
+                              </select>
                               {userErrors.school_id && <p className="text-red-600 text-xs mt-1">{userErrors.school_id}</p>}
+                              {!loadingSchools && schoolsList.length === 0 && (
+                                <p className="text-yellow-600 text-xs mt-1">No schools available. Please register a school first.</p>
+                              )}
+                              
+                              {/* School Pagination Controls */}
+                              {schoolsList.length > 0 && (
+                                <div className="flex items-center justify-between gap-2 mt-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleSchoolPageChange(schoolsPage - 1)}
+                                    disabled={schoolsPage <= 1 || loadingSchools}
+                                    className={`px-3 py-1.5 text-sm font-semibold rounded-lg border transition-all duration-200 ${
+                                      schoolsPage <= 1 || loadingSchools
+                                        ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                                        : 'bg-white text-orange-600 border-orange-300 hover:bg-orange-50 hover:border-orange-400'
+                                    }`}
+                                  >
+                                    Previous
+                                  </button>
+                                  <span className="text-sm text-gray-600 font-medium">
+                                    Page {schoolsPage} {schoolsTotalPages > 1 && `of ${schoolsTotalPages}`}
+                                    {schoolsList.length > 0 && ` (${schoolsList.length} schools)`}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleSchoolPageChange(schoolsPage + 1)}
+                                    disabled={schoolsPage >= schoolsTotalPages || loadingSchools || schoolsList.length < schoolsLimit}
+                                    className={`px-3 py-1.5 text-sm font-semibold rounded-lg border transition-all duration-200 ${
+                                      schoolsPage >= schoolsTotalPages || loadingSchools || schoolsList.length < schoolsLimit
+                                        ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                                        : 'bg-white text-orange-600 border-orange-300 hover:bg-orange-50 hover:border-orange-400'
+                                    }`}
+                                  >
+                                    Next
+                                  </button>
+                                </div>
+                              )}
                             </div>
                             <div>
                               <label className="block text-sm font-semibold text-gray-700 mb-2">Branch ID <span className="text-red-500">*</span></label>
-                              <input
-                                type="text"
+                              <select
                                 name="branch_id"
                                 value={userForm.branch_id}
                                 onChange={handleUserFormChange}
+                                disabled={loadingBranches}
                                 className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
                                   userErrors.branch_id ? 'border-red-500' : 'border-gray-300'
-                                }`}
-                                placeholder="Enter branch ID"
-                              />
+                                } ${loadingBranches ? 'opacity-50 cursor-not-allowed' : ''}`}
+                              >
+                                <option value="">
+                                  {loadingBranches ? 'Loading branches...' : 'Select branch'}
+                                </option>
+                                {branchesList.map((branch) => (
+                                  <option key={branch.branch_id} value={branch.branch_id}>
+                                    {branch.branch_id} - {branch.branch_name}
+                                  </option>
+                                ))}
+                              </select>
                               {userErrors.branch_id && <p className="text-red-600 text-xs mt-1">{userErrors.branch_id}</p>}
+                              {!loadingBranches && branchesList.length === 0 && (
+                                <p className="text-yellow-600 text-xs mt-1">No branches available. Please register a branch first.</p>
+                              )}
+                              
+                              {/* Branch Pagination Controls */}
+                              {branchesList.length > 0 && (
+                                <div className="flex items-center justify-between gap-2 mt-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleBranchPageChange(branchesPage - 1)}
+                                    disabled={branchesPage <= 1 || loadingBranches}
+                                    className={`px-3 py-1.5 text-sm font-semibold rounded-lg border transition-all duration-200 ${
+                                      branchesPage <= 1 || loadingBranches
+                                        ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                                        : 'bg-white text-orange-600 border-orange-300 hover:bg-orange-50 hover:border-orange-400'
+                                    }`}
+                                  >
+                                    Previous
+                                  </button>
+                                  <span className="text-sm text-gray-600 font-medium">
+                                    Page {branchesPage} {branchesTotalPages > 1 && `of ${branchesTotalPages}`}
+                                    {branchesList.length > 0 && ` (${branchesList.length} branches)`}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleBranchPageChange(branchesPage + 1)}
+                                    disabled={branchesPage >= branchesTotalPages || loadingBranches || branchesList.length < branchesLimit}
+                                    className={`px-3 py-1.5 text-sm font-semibold rounded-lg border transition-all duration-200 ${
+                                      branchesPage >= branchesTotalPages || loadingBranches || branchesList.length < branchesLimit
+                                        ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                                        : 'bg-white text-orange-600 border-orange-300 hover:bg-orange-50 hover:border-orange-400'
+                                    }`}
+                                  >
+                                    Next
+                                  </button>
+                                </div>
+                              )}
                             </div>
                           </div>
                           
@@ -1667,31 +2422,121 @@ const Dashboard = () => {
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                               <label className="block text-sm font-semibold text-gray-700 mb-2">School ID <span className="text-red-500">*</span></label>
-                              <input
-                                type="text"
+                              <select
                                 name="school_id"
                                 value={studentForm.school_id}
                                 onChange={handleStudentFormChange}
+                                disabled={loadingStudentSchools}
                                 className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
                                   studentErrors.school_id ? 'border-red-500' : 'border-gray-300'
-                                }`}
-                                placeholder="Enter school ID"
-                              />
+                                } ${loadingStudentSchools ? 'opacity-50 cursor-not-allowed' : ''}`}
+                              >
+                                <option value="">
+                                  {loadingStudentSchools ? 'Loading schools...' : 'Select school'}
+                                </option>
+                                {studentSchoolsList.map((school) => (
+                                  <option key={school.school_id} value={school.school_id}>
+                                    {school.school_id} - {school.school_name}
+                                  </option>
+                                ))}
+                              </select>
                               {studentErrors.school_id && <p className="text-red-600 text-xs mt-1">{studentErrors.school_id}</p>}
+                              {!loadingStudentSchools && studentSchoolsList.length === 0 && (
+                                <p className="text-yellow-600 text-xs mt-1">No schools available. Please register a school first.</p>
+                              )}
+                              
+                              {/* Student School Pagination Controls */}
+                              {studentSchoolsList.length > 0 && (
+                                <div className="flex items-center justify-between gap-2 mt-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleStudentSchoolPageChange(studentSchoolsPage - 1)}
+                                    disabled={studentSchoolsPage <= 1 || loadingStudentSchools}
+                                    className={`px-3 py-1.5 text-sm font-semibold rounded-lg border transition-all duration-200 ${
+                                      studentSchoolsPage <= 1 || loadingStudentSchools
+                                        ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                                        : 'bg-white text-orange-600 border-orange-300 hover:bg-orange-50 hover:border-orange-400'
+                                    }`}
+                                  >
+                                    Previous
+                                  </button>
+                                  <span className="text-sm text-gray-600 font-medium">
+                                    Page {studentSchoolsPage} {studentSchoolsTotalPages > 1 && `of ${studentSchoolsTotalPages}`}
+                                    {studentSchoolsList.length > 0 && ` (${studentSchoolsList.length} schools)`}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleStudentSchoolPageChange(studentSchoolsPage + 1)}
+                                    disabled={studentSchoolsPage >= studentSchoolsTotalPages || loadingStudentSchools || studentSchoolsList.length < studentSchoolsLimit}
+                                    className={`px-3 py-1.5 text-sm font-semibold rounded-lg border transition-all duration-200 ${
+                                      studentSchoolsPage >= studentSchoolsTotalPages || loadingStudentSchools || studentSchoolsList.length < studentSchoolsLimit
+                                        ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                                        : 'bg-white text-orange-600 border-orange-300 hover:bg-orange-50 hover:border-orange-400'
+                                    }`}
+                                  >
+                                    Next
+                                  </button>
+                                </div>
+                              )}
                             </div>
                             <div>
                               <label className="block text-sm font-semibold text-gray-700 mb-2">Branch ID <span className="text-red-500">*</span></label>
-                              <input
-                                type="text"
+                              <select
                                 name="branch_id"
                                 value={studentForm.branch_id}
                                 onChange={handleStudentFormChange}
+                                disabled={loadingStudentBranches}
                                 className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
                                   studentErrors.branch_id ? 'border-red-500' : 'border-gray-300'
-                                }`}
-                                placeholder="Enter branch ID"
-                              />
+                                } ${loadingStudentBranches ? 'opacity-50 cursor-not-allowed' : ''}`}
+                              >
+                                <option value="">
+                                  {loadingStudentBranches ? 'Loading branches...' : 'Select branch'}
+                                </option>
+                                {studentBranchesList.map((branch) => (
+                                  <option key={branch.branch_id} value={branch.branch_id}>
+                                    {branch.branch_id} - {branch.branch_name}
+                                  </option>
+                                ))}
+                              </select>
                               {studentErrors.branch_id && <p className="text-red-600 text-xs mt-1">{studentErrors.branch_id}</p>}
+                              {!loadingStudentBranches && studentBranchesList.length === 0 && (
+                                <p className="text-yellow-600 text-xs mt-1">No branches available. Please register a branch first.</p>
+                              )}
+                              
+                              {/* Student Branch Pagination Controls */}
+                              {studentBranchesList.length > 0 && (
+                                <div className="flex items-center justify-between gap-2 mt-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleStudentBranchPageChange(studentBranchesPage - 1)}
+                                    disabled={studentBranchesPage <= 1 || loadingStudentBranches}
+                                    className={`px-3 py-1.5 text-sm font-semibold rounded-lg border transition-all duration-200 ${
+                                      studentBranchesPage <= 1 || loadingStudentBranches
+                                        ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                                        : 'bg-white text-orange-600 border-orange-300 hover:bg-orange-50 hover:border-orange-400'
+                                    }`}
+                                  >
+                                    Previous
+                                  </button>
+                                  <span className="text-sm text-gray-600 font-medium">
+                                    Page {studentBranchesPage} {studentBranchesTotalPages > 1 && `of ${studentBranchesTotalPages}`}
+                                    {studentBranchesList.length > 0 && ` (${studentBranchesList.length} branches)`}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleStudentBranchPageChange(studentBranchesPage + 1)}
+                                    disabled={studentBranchesPage >= studentBranchesTotalPages || loadingStudentBranches || studentBranchesList.length < studentBranchesLimit}
+                                    className={`px-3 py-1.5 text-sm font-semibold rounded-lg border transition-all duration-200 ${
+                                      studentBranchesPage >= studentBranchesTotalPages || loadingStudentBranches || studentBranchesList.length < studentBranchesLimit
+                                        ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                                        : 'bg-white text-orange-600 border-orange-300 hover:bg-orange-50 hover:border-orange-400'
+                                    }`}
+                                  >
+                                    Next
+                                  </button>
+                                </div>
+                              )}
                             </div>
                           </div>
                           
@@ -2013,64 +2858,151 @@ const Dashboard = () => {
                       </div>
                       <p className="text-sm text-gray-600 mb-6">Register new parents in the system.</p>
                       <div className="bg-white rounded-lg p-6 shadow-sm">
-                        <form className="space-y-4">
+                        <form onSubmit={handleParentSubmit} className="space-y-4">
                           <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-2">School</label>
-                            <select className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-orange-500">
-                              <option value="">Select school</option>
-                              <option value="1">Bright Future School (ID: 1)</option>
-                              <option value="2">Green Valley Academy (ID: 2)</option>
-                              <option value="3">Sunrise Public School (ID: 3)</option>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">School ID <span className="text-red-500">*</span></label>
+                            <select
+                              name="school_id"
+                              value={parentForm.school_id}
+                              onChange={handleParentFormChange}
+                              disabled={loadingParentSchools}
+                              className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                parentErrors.school_id ? 'border-red-500' : 'border-gray-300'
+                              } ${loadingParentSchools ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            >
+                              <option value="">
+                                {loadingParentSchools ? 'Loading schools...' : 'Select school'}
+                              </option>
+                              {parentSchoolsList.map((school) => (
+                                <option key={school.school_id} value={school.school_id}>
+                                  {school.school_id} - {school.school_name}
+                                </option>
+                              ))}
                             </select>
+                            {parentErrors.school_id && <p className="text-red-600 text-xs mt-1">{parentErrors.school_id}</p>}
+                            {!loadingParentSchools && parentSchoolsList.length === 0 && (
+                              <p className="text-yellow-600 text-xs mt-1">No schools available. Please register a school first.</p>
+                            )}
+                            
+                            {/* Parent School Pagination Controls */}
+                            {parentSchoolsList.length > 0 && (
+                              <div className="flex items-center justify-between gap-2 mt-2">
+                                <button
+                                  type="button"
+                                  onClick={() => handleParentSchoolPageChange(parentSchoolsPage - 1)}
+                                  disabled={parentSchoolsPage <= 1 || loadingParentSchools}
+                                  className={`px-3 py-1.5 text-sm font-semibold rounded-lg border transition-all duration-200 ${
+                                    parentSchoolsPage <= 1 || loadingParentSchools
+                                      ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                                      : 'bg-white text-orange-600 border-orange-300 hover:bg-orange-50 hover:border-orange-400'
+                                  }`}
+                                >
+                                  Previous
+                                </button>
+                                <span className="text-sm text-gray-600 font-medium">
+                                  Page {parentSchoolsPage} {parentSchoolsTotalPages > 1 && `of ${parentSchoolsTotalPages}`}
+                                  {parentSchoolsList.length > 0 && ` (${parentSchoolsList.length} schools)`}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleParentSchoolPageChange(parentSchoolsPage + 1)}
+                                  disabled={parentSchoolsPage >= parentSchoolsTotalPages || loadingParentSchools || parentSchoolsList.length < parentSchoolsLimit}
+                                  className={`px-3 py-1.5 text-sm font-semibold rounded-lg border transition-all duration-200 ${
+                                    parentSchoolsPage >= parentSchoolsTotalPages || loadingParentSchools || parentSchoolsList.length < parentSchoolsLimit
+                                      ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                                      : 'bg-white text-orange-600 border-orange-300 hover:bg-orange-50 hover:border-orange-400'
+                                  }`}
+                                >
+                                  Next
+                                </button>
+                              </div>
+                            )}
                           </div>
                           <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-2">Full Name</label>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">Full Name <span className="text-red-500">*</span></label>
                             <input
                               type="text"
-                              className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
+                              name="full_name"
+                              value={parentForm.full_name}
+                              onChange={handleParentFormChange}
+                              className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                parentErrors.full_name ? 'border-red-500' : 'border-gray-300'
+                              }`}
                               placeholder="Enter full name"
                             />
+                            {parentErrors.full_name && <p className="text-red-600 text-xs mt-1">{parentErrors.full_name}</p>}
                           </div>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                              <label className="block text-sm font-semibold text-gray-700 mb-2">Phone</label>
+                              <label className="block text-sm font-semibold text-gray-700 mb-2">Phone <span className="text-red-500">*</span></label>
                               <input
                                 type="tel"
-                                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
+                                name="phone"
+                                value={parentForm.phone}
+                                onChange={handleParentFormChange}
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                  parentErrors.phone ? 'border-red-500' : 'border-gray-300'
+                                }`}
                                 placeholder="Enter 10-digit phone number"
                                 maxLength="10"
                               />
+                              {parentErrors.phone && <p className="text-red-600 text-xs mt-1">{parentErrors.phone}</p>}
                             </div>
                             <div>
-                              <label className="block text-sm font-semibold text-gray-700 mb-2">WhatsApp Number</label>
+                              <label className="block text-sm font-semibold text-gray-700 mb-2">WhatsApp Number <span className="text-red-500">*</span></label>
                               <input
                                 type="tel"
-                                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
+                                name="whatsapp_number"
+                                value={parentForm.whatsapp_number}
+                                onChange={handleParentFormChange}
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                  parentErrors.whatsapp_number ? 'border-red-500' : 'border-gray-300'
+                                }`}
                                 placeholder="Enter 10-digit WhatsApp number"
                                 maxLength="10"
                               />
+                              {parentErrors.whatsapp_number && <p className="text-red-600 text-xs mt-1">{parentErrors.whatsapp_number}</p>}
                             </div>
                           </div>
                           <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-2">Email</label>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">Email <span className="text-red-500">*</span></label>
                             <input
                               type="email"
-                              className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
+                              name="email"
+                              value={parentForm.email}
+                              onChange={handleParentFormChange}
+                              className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                parentErrors.email ? 'border-red-500' : 'border-gray-300'
+                              }`}
                               placeholder="parent@example.com"
                             />
+                            {parentErrors.email && <p className="text-red-600 text-xs mt-1">{parentErrors.email}</p>}
                           </div>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                              <label className="block text-sm font-semibold text-gray-700 mb-2">Occupation</label>
+                              <label className="block text-sm font-semibold text-gray-700 mb-2">Occupation <span className="text-red-500">*</span></label>
                               <input
                                 type="text"
-                                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
+                                name="occupation"
+                                value={parentForm.occupation}
+                                onChange={handleParentFormChange}
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                  parentErrors.occupation ? 'border-red-500' : 'border-gray-300'
+                                }`}
                                 placeholder="Enter occupation"
                               />
+                              {parentErrors.occupation && <p className="text-red-600 text-xs mt-1">{parentErrors.occupation}</p>}
                             </div>
                             <div>
-                              <label className="block text-sm font-semibold text-gray-700 mb-2">Annual Income Range</label>
-                              <select className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-orange-500">
+                              <label className="block text-sm font-semibold text-gray-700 mb-2">Annual Income Range <span className="text-red-500">*</span></label>
+                              <select
+                                name="annual_income_range"
+                                value={parentForm.annual_income_range}
+                                onChange={handleParentFormChange}
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                  parentErrors.annual_income_range ? 'border-red-500' : 'border-gray-300'
+                                }`}
+                              >
                                 <option value="">Select range</option>
                                 <option value="5-7 LPA">5-7 LPA</option>
                                 <option value="3-5 LPA">3-5 LPA</option>
@@ -2078,11 +3010,19 @@ const Dashboard = () => {
                                 <option value="<1 LPA">&lt;1 LPA</option>
                                 <option value=">7 LPA">&gt;7 LPA</option>
                               </select>
+                              {parentErrors.annual_income_range && <p className="text-red-600 text-xs mt-1">{parentErrors.annual_income_range}</p>}
                             </div>
                           </div>
                           <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-2">Education Level</label>
-                            <select className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-orange-500">
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">Education Level <span className="text-red-500">*</span></label>
+                            <select
+                              name="education_level"
+                              value={parentForm.education_level}
+                              onChange={handleParentFormChange}
+                              className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                parentErrors.education_level ? 'border-red-500' : 'border-gray-300'
+                              }`}
+                            >
                               <option value="">Select education level</option>
                               <option value="Graduate">Graduate</option>
                               <option value="Postgraduate">Postgraduate</option>
@@ -2090,55 +3030,86 @@ const Dashboard = () => {
                               <option value="High School">High School</option>
                               <option value="Other">Other</option>
                             </select>
+                            {parentErrors.education_level && <p className="text-red-600 text-xs mt-1">{parentErrors.education_level}</p>}
                           </div>
                           <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-2">Address Line 1</label>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">Address Line 1 <span className="text-red-500">*</span></label>
                             <input
                               type="text"
-                              className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
+                              name="address_line1"
+                              value={parentForm.address_line1}
+                              onChange={handleParentFormChange}
+                              className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                parentErrors.address_line1 ? 'border-red-500' : 'border-gray-300'
+                              }`}
                               placeholder="Enter address line 1"
                             />
+                            {parentErrors.address_line1 && <p className="text-red-600 text-xs mt-1">{parentErrors.address_line1}</p>}
                           </div>
                           <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-2">Address Line 2</label>
                             <input
                               type="text"
+                              name="address_line2"
+                              value={parentForm.address_line2}
+                              onChange={handleParentFormChange}
                               className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
                               placeholder="Enter address line 2 (optional)"
                             />
                           </div>
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
-                              <label className="block text-sm font-semibold text-gray-700 mb-2">City</label>
+                              <label className="block text-sm font-semibold text-gray-700 mb-2">City <span className="text-red-500">*</span></label>
                               <input
                                 type="text"
-                                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
+                                name="city"
+                                value={parentForm.city}
+                                onChange={handleParentFormChange}
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                  parentErrors.city ? 'border-red-500' : 'border-gray-300'
+                                }`}
                                 placeholder="Enter city"
                               />
+                              {parentErrors.city && <p className="text-red-600 text-xs mt-1">{parentErrors.city}</p>}
                             </div>
                             <div>
-                              <label className="block text-sm font-semibold text-gray-700 mb-2">State</label>
+                              <label className="block text-sm font-semibold text-gray-700 mb-2">State <span className="text-red-500">*</span></label>
                               <input
                                 type="text"
-                                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
+                                name="state"
+                                value={parentForm.state}
+                                onChange={handleParentFormChange}
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                  parentErrors.state ? 'border-red-500' : 'border-gray-300'
+                                }`}
                                 placeholder="Enter state"
                               />
+                              {parentErrors.state && <p className="text-red-600 text-xs mt-1">{parentErrors.state}</p>}
                             </div>
                             <div>
-                              <label className="block text-sm font-semibold text-gray-700 mb-2">Pin Code</label>
+                              <label className="block text-sm font-semibold text-gray-700 mb-2">Pin Code <span className="text-red-500">*</span></label>
                               <input
                                 type="text"
-                                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
+                                name="pincode"
+                                value={parentForm.pincode}
+                                onChange={handleParentFormChange}
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                  parentErrors.pincode ? 'border-red-500' : 'border-gray-300'
+                                }`}
                                 placeholder="Enter 6-digit pin code"
                                 maxLength="6"
                               />
+                              {parentErrors.pincode && <p className="text-red-600 text-xs mt-1">{parentErrors.pincode}</p>}
                             </div>
                           </div>
                           <button
                             type="submit"
-                            className="w-full bg-gradient-to-r from-orange-500 to-red-600 text-white px-6 py-3 rounded-lg font-semibold hover:shadow-lg transition-all duration-200"
+                            disabled={parentSubmitting}
+                            className={`w-full bg-gradient-to-r from-orange-500 to-red-600 text-white px-6 py-3 rounded-lg font-semibold hover:shadow-lg transition-all duration-200 ${
+                              parentSubmitting ? 'opacity-50 cursor-not-allowed' : ''
+                            }`}
                           >
-                            Register Parent
+                            {parentSubmitting ? 'Registering...' : 'Register Parent'}
                           </button>
                         </form>
                       </div>

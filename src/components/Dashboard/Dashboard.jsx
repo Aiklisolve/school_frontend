@@ -3,6 +3,8 @@ import { useAuth } from '../../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import axios from 'axios'
+import TeacherDashboard from './TeacherDashboard'
+import ParentDashboard from './ParentDashboard'
 
 const API_BASE_URL = 'http://localhost:3000/api'
 
@@ -61,147 +63,147 @@ const Dashboard = () => {
     return labels[type] || type?.toUpperCase() || 'USER'
   }
 
-  // Teacher Dashboard Component
-  const TeacherDashboard = () => (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
-      <div className="bg-white px-8 py-6 shadow-md flex justify-between items-center">
-        <div>
-          <h1 className="m-0 text-gray-900 text-2xl font-bold">Welcome, {user?.name || user?.email}!</h1>
-          <p className="inline-block bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-3 py-1 rounded-xl text-xs font-semibold mt-2">
-            TEACHER
-          </p>
-        </div>
-        <button 
-          onClick={handleLogout} 
-          className="bg-red-600 text-white border-none px-5 py-2.5 rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200 hover:bg-red-700 hover:-translate-y-0.5 hover:shadow-md"
-        >
-          Logout
-        </button>
-      </div>
+  // Teacher Dashboard Component - MOVED TO TeacherDashboard.jsx
+  // const TeacherDashboard = () => (
+  //   <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
+  //     <div className="bg-white px-8 py-6 shadow-md flex justify-between items-center">
+  //       <div>
+  //         <h1 className="m-0 text-gray-900 text-2xl font-bold">Welcome, {user?.name || user?.email}!</h1>
+  //         <p className="inline-block bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-3 py-1 rounded-xl text-xs font-semibold mt-2">
+  //           TEACHER
+  //         </p>
+  //       </div>
+  //       <button 
+  //         onClick={handleLogout} 
+  //         className="bg-red-600 text-white border-none px-5 py-2.5 rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200 hover:bg-red-700 hover:-translate-y-0.5 hover:shadow-md"
+  //       >
+  //         Logout
+  //       </button>
+  //     </div>
 
-      <div className="p-6 max-w-6xl mx-auto">
-        <div className="bg-white rounded-xl p-8 shadow-lg mb-6">
-          <div className="text-center py-6">
-            <div className="inline-block bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-6xl font-bold px-8 py-4 rounded-2xl mb-4 shadow-lg">
-              👨‍🏫
-            </div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-3">Teacher Dashboard</h2>
-            <p className="text-lg text-gray-600 mb-2">Welcome to your teaching portal!</p>
-            <p className="text-md text-blue-600 font-semibold">You have successfully logged in as a TEACHER.</p>
-          </div>
-        </div>
+  //     <div className="p-6 max-w-6xl mx-auto">
+  //       <div className="bg-white rounded-xl p-8 shadow-lg mb-6">
+  //         <div className="text-center py-6">
+  //           <div className="inline-block bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-6xl font-bold px-8 py-4 rounded-2xl mb-4 shadow-lg">
+  //             👨‍🏫
+  //           </div>
+  //           <h2 className="text-3xl font-bold text-gray-900 mb-3">Teacher Dashboard</h2>
+  //           <p className="text-lg text-gray-600 mb-2">Welcome to your teaching portal!</p>
+  //           <p className="text-md text-blue-600 font-semibold">You have successfully logged in as a TEACHER.</p>
+  //         </div>
+  //       </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow">
-            <h3 className="text-xl font-semibold mb-3 text-gray-900">📚 My Classes</h3>
-            <p className="text-gray-600 text-sm">View and manage your assigned classes and subjects.</p>
-          </div>
-          <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow">
-            <h3 className="text-xl font-semibold mb-3 text-gray-900">📝 Assignments</h3>
-            <p className="text-gray-600 text-sm">Create and review student assignments and submissions.</p>
-          </div>
-          <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow">
-            <h3 className="text-xl font-semibold mb-3 text-gray-900">📊 Grades</h3>
-            <p className="text-gray-600 text-sm">Manage student grades and academic performance.</p>
-          </div>
-          <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow">
-            <h3 className="text-xl font-semibold mb-3 text-gray-900">👥 Students</h3>
-            <p className="text-gray-600 text-sm">View student profiles and communicate with students.</p>
-          </div>
-          <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow">
-            <h3 className="text-xl font-semibold mb-3 text-gray-900">📅 Schedule</h3>
-            <p className="text-gray-600 text-sm">Check your teaching schedule and timetables.</p>
-          </div>
-          <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow">
-            <h3 className="text-xl font-semibold mb-3 text-gray-900">💬 Messages</h3>
-            <p className="text-gray-600 text-sm">Communicate with parents and students.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
+  //       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+  //         <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow">
+  //           <h3 className="text-xl font-semibold mb-3 text-gray-900">📚 My Classes</h3>
+  //           <p className="text-gray-600 text-sm">View and manage your assigned classes and subjects.</p>
+  //         </div>
+  //         <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow">
+  //           <h3 className="text-xl font-semibold mb-3 text-gray-900">📝 Assignments</h3>
+  //           <p className="text-gray-600 text-sm">Create and review student assignments and submissions.</p>
+  //         </div>
+  //         <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow">
+  //           <h3 className="text-xl font-semibold mb-3 text-gray-900">📊 Grades</h3>
+  //           <p className="text-gray-600 text-sm">Manage student grades and academic performance.</p>
+  //         </div>
+  //         <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow">
+  //           <h3 className="text-xl font-semibold mb-3 text-gray-900">👥 Students</h3>
+  //           <p className="text-gray-600 text-sm">View student profiles and communicate with students.</p>
+  //         </div>
+  //         <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow">
+  //           <h3 className="text-xl font-semibold mb-3 text-gray-900">📅 Schedule</h3>
+  //           <p className="text-gray-600 text-sm">Check your teaching schedule and timetables.</p>
+  //         </div>
+  //         <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow">
+  //           <h3 className="text-xl font-semibold mb-3 text-gray-900">💬 Messages</h3>
+  //           <p className="text-gray-600 text-sm">Communicate with parents and students.</p>
+  //         </div>
+  //       </div>
+  //     </div>
+  //   </div>
+  // )
 
-  // Parent Dashboard Component
-  const ParentDashboard = () => (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50">
-      <div className="bg-white px-8 py-6 shadow-md flex justify-between items-center">
-        <div>
-          <h1 className="m-0 text-gray-900 text-2xl font-bold">Welcome, {user?.name || user?.email}!</h1>
-          <p className="inline-block bg-gradient-to-r from-green-500 to-emerald-600 text-white px-3 py-1 rounded-xl text-xs font-semibold mt-2">
-            PARENT
-          </p>
-        </div>
-        <button 
-          onClick={handleLogout} 
-          className="bg-red-600 text-white border-none px-5 py-2.5 rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200 hover:bg-red-700 hover:-translate-y-0.5 hover:shadow-md"
-        >
-          Logout
-        </button>
-      </div>
+  // Parent Dashboard Component - MOVED TO ParentDashboard.jsx
+  // const ParentDashboard = () => (
+  //   <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50">
+  //     <div className="bg-white px-8 py-6 shadow-md flex justify-between items-center">
+  //       <div>
+  //         <h1 className="m-0 text-gray-900 text-2xl font-bold">Welcome, {user?.name || user?.email}!</h1>
+  //         <p className="inline-block bg-gradient-to-r from-green-500 to-emerald-600 text-white px-3 py-1 rounded-xl text-xs font-semibold mt-2">
+  //           PARENT
+  //         </p>
+  //       </div>
+  //       <button 
+  //         onClick={handleLogout} 
+  //         className="bg-red-600 text-white border-none px-5 py-2.5 rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200 hover:bg-red-700 hover:-translate-y-0.5 hover:shadow-md"
+  //       >
+  //         Logout
+  //       </button>
+  //     </div>
 
-      <div className="p-6 max-w-6xl mx-auto">
-        <div className="bg-white rounded-xl p-8 shadow-lg mb-6">
-          <div className="text-center py-6">
-            <div className="inline-block bg-gradient-to-r from-green-500 to-emerald-600 text-white text-6xl font-bold px-8 py-4 rounded-2xl mb-4 shadow-lg">
-              👨‍👩‍👧‍👦
-            </div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-3">Parent Dashboard</h2>
-            <p className="text-lg text-gray-600 mb-2">Welcome to your parent portal!</p>
-            <p className="text-md text-green-600 font-semibold">You have successfully logged in as a PARENT.</p>
-          </div>
-          </div>
+  //     <div className="p-6 max-w-6xl mx-auto">
+  //       <div className="bg-white rounded-xl p-8 shadow-lg mb-6">
+  //         <div className="text-center py-6">
+  //           <div className="inline-block bg-gradient-to-r from-green-500 to-emerald-600 text-white text-6xl font-bold px-8 py-4 rounded-2xl mb-4 shadow-lg">
+  //             👨‍👩‍👧‍👦
+  //           </div>
+  //           <h2 className="text-3xl font-bold text-gray-900 mb-3">Parent Dashboard</h2>
+  //           <p className="text-lg text-gray-600 mb-2">Welcome to your parent portal!</p>
+  //           <p className="text-md text-green-600 font-semibold">You have successfully logged in as a PARENT.</p>
+  //         </div>
+  //         </div>
 
-                {/* Tabs */}
-        <div className="bg-white rounded-xl p-6 shadow-lg">
-          <div className="flex gap-2 border-b pb-2 mb-4">
-            {['upload','chat','meeting','calendar'].map(tab => (
-                    <button
-                      key={tab}
-                      onClick={() => setActiveTab(tab)}
-                className={`px-4 py-2 rounded-t-md -mb-px font-semibold transition-colors ${
-                  activeTab === tab 
-                    ? 'bg-white border border-b-0 border-gray-200 text-green-600' 
-                    : 'text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                {tab.charAt(0).toUpperCase() + tab.slice(1)}
-              </button>
-            ))}
-          </div>
+  //               {/* Tabs */}
+  //       <div className="bg-white rounded-xl p-6 shadow-lg">
+  //         <div className="flex gap-2 border-b pb-2 mb-4">
+  //           {['upload','chat','meeting','calendar'].map(tab => (
+  //                   <button
+  //                     key={tab}
+  //                     onClick={() => setActiveTab(tab)}
+  //               className={`px-4 py-2 rounded-t-md -mb-px font-semibold transition-colors ${
+  //                 activeTab === tab 
+  //                   ? 'bg-white border border-b-0 border-gray-200 text-green-600' 
+  //                   : 'text-gray-500 hover:text-gray-700'
+  //               }`}
+  //             >
+  //               {tab.charAt(0).toUpperCase() + tab.slice(1)}
+  //             </button>
+  //           ))}
+  //         </div>
 
-          <div className="mt-4">
-            {activeTab === 'upload' && (
-              <div className="p-6 bg-gray-50 rounded-md">
-                <h3 className="text-lg font-semibold mb-2">Upload Documents</h3>
-                <p className="text-sm text-gray-600">Upload documents and images related to your child's education.</p>
-              </div>
-            )}
+  //         <div className="mt-4">
+  //           {activeTab === 'upload' && (
+  //             <div className="p-6 bg-gray-50 rounded-md">
+  //               <h3 className="text-lg font-semibold mb-2">Upload Documents</h3>
+  //               <p className="text-sm text-gray-600">Upload documents and images related to your child's education.</p>
+  //             </div>
+  //           )}
 
-            {activeTab === 'chat' && (
-              <div className="p-6 bg-gray-50 rounded-md">
-                <h3 className="text-lg font-semibold mb-2">Chat AI Assistant</h3>
-                <p className="text-sm text-gray-600">Chat with AI assistant for school-related queries and support.</p>
-              </div>
-            )}
+  //           {activeTab === 'chat' && (
+  //             <div className="p-6 bg-gray-50 rounded-md">
+  //               <h3 className="text-lg font-semibold mb-2">Chat AI Assistant</h3>
+  //               <p className="text-sm text-gray-600">Chat with AI assistant for school-related queries and support.</p>
+  //             </div>
+  //           )}
 
-            {activeTab === 'meeting' && (
-              <div className="p-6 bg-gray-50 rounded-md">
-                <h3 className="text-lg font-semibold mb-2">Meeting Scheduler</h3>
-                <p className="text-sm text-gray-600">Schedule parent-teacher meetings and appointments.</p>
-              </div>
-            )}
+  //           {activeTab === 'meeting' && (
+  //             <div className="p-6 bg-gray-50 rounded-md">
+  //               <h3 className="text-lg font-semibold mb-2">Meeting Scheduler</h3>
+  //               <p className="text-sm text-gray-600">Schedule parent-teacher meetings and appointments.</p>
+  //             </div>
+  //           )}
 
-            {activeTab === 'calendar' && (
-              <div className="p-6 bg-gray-50 rounded-md">
-                <h3 className="text-lg font-semibold mb-2">Calendar</h3>
-                <p className="text-sm text-gray-600">View school events, holidays, and important dates.</p>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  )
+  //           {activeTab === 'calendar' && (
+  //             <div className="p-6 bg-gray-50 rounded-md">
+  //               <h3 className="text-lg font-semibold mb-2">Calendar</h3>
+  //               <p className="text-sm text-gray-600">View school events, holidays, and important dates.</p>
+  //             </div>
+  //           )}
+  //         </div>
+  //       </div>
+  //     </div>
+  //   </div>
+  // )
 
   // Student Dashboard Component
   const StudentDashboard = () => (
@@ -267,6 +269,9 @@ const Dashboard = () => {
   const AdminDashboard = () => {
     const [adminActiveTab, setAdminActiveTab] = useState('registration')
     const [registrationType, setRegistrationType] = useState('school')
+    const [reportUploadFile, setReportUploadFile] = useState(null)
+    const [reportUploading, setReportUploading] = useState(false)
+    const [reportUploadError, setReportUploadError] = useState('')
     
     // School Registration State
     const [schoolForm, setSchoolForm] = useState({
@@ -3619,10 +3624,11 @@ const Dashboard = () => {
               )}
 
               {adminActiveTab === 'reports' && (
-                <div className="p-6 bg-gray-50 rounded-md">
-                  <h3 className="text-lg font-semibold mb-2">Reports & Analytics</h3>
-                  <p className="text-sm text-gray-600 mb-4">View system reports and analytics.</p>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-6">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Reports & Analytics</h3>
+                  <p className="text-gray-600 mb-6">View system reports, analytics, and upload report card data.</p>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <div className="bg-white rounded-lg p-4 shadow-sm">
                       <h4 className="font-semibold mb-2">📊 System Reports</h4>
                       <p className="text-sm text-gray-600">Generate and view various system reports.</p>
@@ -3632,8 +3638,144 @@ const Dashboard = () => {
                       <p className="text-sm text-gray-600">Monitor system usage and performance metrics.</p>
                     </div>
                   </div>
-              </div>
-            )}
+
+                  {/* Excel File Upload Section */}
+                  <div className="bg-gradient-to-br from-orange-50 to-red-50 rounded-lg border border-orange-200 p-6">
+                    <h4 className="text-xl font-bold text-gray-900 mb-4">Upload Report Cards (Excel File)</h4>
+                    <p className="text-sm text-gray-600 mb-4">Upload an Excel file containing student report card marks and results.</p>
+                    
+                    <div className="bg-white rounded-lg p-6 shadow-sm">
+                      <form onSubmit={async (e) => {
+                        e.preventDefault()
+                        
+                        if (!reportUploadFile) {
+                          setReportUploadError('Please select an Excel file')
+                          return
+                        }
+                        
+                        // Validate file type
+                        const fileName = reportUploadFile.name.toLowerCase()
+                        const validExtensions = ['.csv', '.xlsx', '.xls']
+                        const hasValidExtension = validExtensions.some(ext => fileName.endsWith(ext))
+                        if (!hasValidExtension) {
+                          setReportUploadError('Please select a valid Excel or CSV file (.csv, .xlsx, .xls)')
+                          return
+                        }
+                        
+                        setReportUploadError('')
+                        setReportUploading(true)
+                        
+                        try {
+                          const formData = new FormData()
+                          formData.append('csvFile', reportUploadFile)
+                          formData.append('schoolId', '1')
+                          formData.append('yearId', '1')
+                          formData.append('term', 'TERM1')
+                          
+                          console.log('Uploading file:', reportUploadFile.name)
+                          console.log('FormData entries:')
+                          for (let pair of formData.entries()) {
+                            console.log(pair[0] + ': ' + (pair[1] instanceof File ? pair[1].name : pair[1]))
+                          }
+                          
+                          const url = `${API_BASE_URL}/report-cards/upload-csv`
+                          console.log('Calling API:', url)
+                          
+                          const response = await axios.post(url, formData, {
+                            headers: {
+                              'Content-Type': 'multipart/form-data'
+                            }
+                          })
+                          
+                          console.log('Upload response:', response.data)
+                          
+                          // Show success message
+                          const Swal = await loadSwal()
+                          Swal.fire({
+                            icon: 'success',
+                            title: 'Success!',
+                            text: response.data?.message || 'Report cards uploaded successfully!',
+                            timer: 3000,
+                            showConfirmButton: false
+                          })
+                          
+                          // Reset form
+                          setReportUploadFile(null)
+                          const fileInput = document.getElementById('reportExcelFile')
+                          if (fileInput) {
+                            fileInput.value = ''
+                          }
+                        } catch (error) {
+                          const errorMsg = error.response?.data?.message || 'Failed to upload report cards. Please try again.'
+                          setReportUploadError(errorMsg)
+                          try {
+                            const Swal = await loadSwal()
+                            Swal.fire({
+                              icon: 'error',
+                              title: 'Error',
+                              text: errorMsg
+                            })
+                          } catch (swalError) {
+                            // Fallback to alert if SweetAlert2 fails
+                          }
+                        } finally {
+                          setReportUploading(false)
+                        }
+                      }}>
+                        <div className="space-y-4">
+                          {/* File Upload Field */}
+                          <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                              Excel File <span className="text-red-500">*</span>
+                            </label>
+                            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-orange-500 transition-colors">
+                              <input
+                                type="file"
+                                id="reportExcelFile"
+                                accept=".csv,.xlsx,.xls"
+                                onChange={(e) => {
+                                  const file = e.target.files[0]
+                                  setReportUploadFile(file)
+                                  setReportUploadError('')
+                                }}
+                                className="hidden"
+                              />
+                              <label htmlFor="reportExcelFile" className="cursor-pointer">
+                                <div className="flex flex-col items-center">
+                                  <svg className="w-12 h-12 text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                  </svg>
+                                  <p className="text-sm text-gray-600 mb-1">
+                                    <span className="text-orange-600 font-semibold">Click to upload</span> or drag and drop
+                                  </p>
+                                  <p className="text-xs text-gray-500">Excel or CSV file (.csv, .xlsx, .xls)</p>
+                                  {reportUploadFile && (
+                                    <p className="text-sm text-green-600 font-semibold mt-2">
+                                      Selected: {reportUploadFile.name}
+                                    </p>
+                                  )}
+                                </div>
+                              </label>
+                            </div>
+                            {reportUploadError && (
+                              <p className="text-red-600 text-xs mt-1">{reportUploadError}</p>
+                            )}
+                          </div>
+                          
+                          {/* Submit Button */}
+                          <button
+                            type="submit"
+                            disabled={reportUploading || !reportUploadFile}
+                            className="w-full bg-gradient-to-r from-orange-500 to-red-600 text-white px-6 py-3 rounded-lg font-semibold hover:shadow-lg transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
+                          >
+                            {reportUploading ? 'Uploading...' : 'Upload Excel File'}
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              )}
           </div>
         </div>
       </div>
@@ -3661,8 +3803,8 @@ const Dashboard = () => {
 
   return (
     <>
-      {userType === 'teacher' && <TeacherDashboard />}
-      {userType === 'parent' && <ParentDashboard />}
+      {userType === 'teacher' && <TeacherDashboard user={user} handleLogout={handleLogout} />}
+      {userType === 'parent' && <ParentDashboard user={user} handleLogout={handleLogout} />}
       {userType === 'student' && <StudentDashboard />}
       {userType === 'admin' && <AdminDashboard />}
     </>

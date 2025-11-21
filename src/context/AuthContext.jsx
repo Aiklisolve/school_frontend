@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect } from 'react'
+import React, { createContext, useState, useContext, useEffect, useCallback } from 'react'
 import axios from 'axios'
 
 const AuthContext = createContext()
@@ -68,39 +68,246 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true)
   const [otp, setOtp] = useState(null)
 
+  // Inactivity timeout: 5 minutes = 300,000 milliseconds
+  const INACTIVITY_TIMEOUT = 5 * 60 * 1000
+
+  // Function to logout and clear all data
+  const performLogout = useCallback(async () => {
+    // Get session_id before clearing localStorage
+    const sessionId = localStorage.getItem('session_id') || 
+                     (() => {
+                       try {
+                         const storedUser = localStorage.getItem('user')
+                         if (storedUser && storedUser !== 'undefined') {
+                           const parsedUser = JSON.parse(storedUser)
+                           return parsedUser?.session_id
+                         }
+                       } catch (e) {
+                         // Ignore parsing errors
+                       }
+                       return null
+                     })()
+
+    // Call backend logout API if session_id exists
+    if (sessionId) {
+      try {
+        await axios.post(`${API_BASE_URL}/sessions/logout`, {
+          session_id: sessionId
+        }, {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
+        console.log('Backend logout successful')
+      } catch (error) {
+        // Even if backend logout fails, continue with local logout
+        console.error('Backend logout error:', error)
+        // Don't block logout if API call fails - still clear local data
+      }
+    }
+
+    // Clear all local storage and state
+    localStorage.removeItem('user')
+    localStorage.removeItem('token')
+    localStorage.removeItem('otp')
+    localStorage.removeItem('session_id')
+    localStorage.removeItem('is_active')
+    setUser(null)
+    setOtp(null)
+  }, [])
+
+  // Function to validate session with backend
+  const validateSession = useCallback(async (sessionId, token) => {
+    try {
+      if (!sessionId || !token) {
+        console.log('Session validation skipped: missing session_id or token')
+        return { valid: false, reason: 'missing_credentials' }
+      }
+
+      const response = await axios.post(`${API_BASE_URL}/sessions/validate`, {
+        session_id: sessionId,
+        token: token
+      })
+
+      // Check if response indicates valid session
+      if (response.data && (response.data.valid === true || response.status === 200)) {
+        return { valid: true }
+      }
+
+      return { valid: false, reason: 'invalid_session' }
+    } catch (error) {
+      console.error('Session validation error:', error)
+      // If session is invalid or expired, backend will return error
+      return { 
+        valid: false, 
+        reason: error.response?.status === 401 || error.response?.status === 403 
+          ? 'invalid_session' 
+          : 'validation_error' 
+      }
+    }
+  }, [])
+
   useEffect(() => {
     // Check if user is already logged in (from localStorage)
     const storedUser = localStorage.getItem('user')
     const storedToken = localStorage.getItem('token')
     const storedOtp = localStorage.getItem('otp')
+    const storedSessionId = localStorage.getItem('session_id')
     
     // Check if storedUser exists and is not "undefined" string
     if (storedUser && storedUser !== 'undefined' && storedToken && storedToken !== 'undefined') {
       try {
         const parsedUser = JSON.parse(storedUser)
         if (parsedUser) {
-          setUser(parsedUser)
+          // Validate session before setting user
+          const sessionIdToValidate = storedSessionId || parsedUser.session_id
+          
+          if (sessionIdToValidate) {
+            // Validate session with backend
+            validateSession(sessionIdToValidate, storedToken).then(async (validationResult) => {
+              if (validationResult.valid) {
+                // Session is valid, fetch latest user details
+                const userId = parsedUser.id
+                if (userId) {
+                  try {
+                    const userDetailsResponse = await axios.get(`${API_BASE_URL}/users/${userId}`, {
+                      headers: {
+                        'Authorization': `Bearer ${storedToken}`,
+                        'Content-Type': 'application/json'
+                      }
+                    })
+                    
+                    // Merge fetched user details with stored user data
+                    const fetchedUserDetails = userDetailsResponse.data?.data || userDetailsResponse.data || {}
+                    const completeUserData = {
+                      ...parsedUser,
+                      ...fetchedUserDetails,
+                      // Preserve important fields
+                      id: userId,
+                      session_id: sessionIdToValidate,
+                      email: parsedUser.email || fetchedUserDetails.email,
+                      userType: parsedUser.userType || fetchedUserDetails.user_type || fetchedUserDetails.role
+                    }
+                    
+                    // Update localStorage with complete user data
+                    localStorage.setItem('user', JSON.stringify(completeUserData))
+                    
+                    // Set user in context with complete data
+                    setUser(completeUserData)
+                    console.log('User details fetched and updated on app load')
+                  } catch (error) {
+                    console.error('Error fetching user details on app load:', error)
+                    // If fetch fails, use stored user data
+                    setUser(parsedUser)
+                  }
+                } else {
+                  // No user ID, use stored user data
+                  setUser(parsedUser)
+                }
+                setLoading(false)
+              } else {
+                // Session is invalid, logout
+                console.log('Session validation failed on app load:', validationResult.reason)
+                await performLogout()
+                setLoading(false)
+              }
+            }).catch(async (error) => {
+              console.error('Error during session validation:', error)
+              await performLogout()
+              setLoading(false)
+            })
+          } else {
+            // No session_id found, logout
+            console.log('No session_id found, logging out')
+            performLogout().then(() => {
+              setLoading(false)
+            }).catch(() => {
+              setLoading(false)
+            })
+          }
         }
       } catch (error) {
         console.error('Error parsing stored user:', error)
         // Clear invalid data
-        localStorage.removeItem('user')
-        localStorage.removeItem('token')
+        performLogout().then(() => {
+          setLoading(false)
+        }).catch(() => {
+          setLoading(false)
+        })
       }
     } else {
       // Clear invalid/undefined data
       if (storedUser === 'undefined' || storedToken === 'undefined') {
-        localStorage.removeItem('user')
-        localStorage.removeItem('token')
+        performLogout().then(() => {
+          setLoading(false)
+        }).catch(() => {
+          setLoading(false)
+        })
+      } else {
+        setLoading(false)
       }
     }
     
     if (storedOtp && storedOtp !== 'undefined') {
       setOtp(storedOtp)
     }
-    
-    setLoading(false)
-  }, [])
+  }, [validateSession, performLogout])
+
+  // Inactivity timeout handler - redirects to login after 5 minutes of no activity
+  useEffect(() => {
+    // Only set up inactivity tracking if user is authenticated
+    if (!user) {
+      return
+    }
+
+    let inactivityTimer = null
+
+    // Function to reset the inactivity timer
+    const resetInactivityTimer = () => {
+      // Clear existing timer
+      if (inactivityTimer) {
+        clearTimeout(inactivityTimer)
+      }
+
+      // Set new timer - if it expires, logout and redirect
+      inactivityTimer = setTimeout(() => {
+        console.log('Session expired due to inactivity')
+        performLogout()
+        // Redirect to login page
+        window.location.href = '/login'
+      }, INACTIVITY_TIMEOUT)
+    }
+
+    // List of events that indicate user activity
+    const activityEvents = [
+      'mousedown',
+      'mousemove',
+      'keypress',
+      'scroll',
+      'touchstart',
+      'click'
+    ]
+
+    // Add event listeners for user activity
+    activityEvents.forEach(event => {
+      document.addEventListener(event, resetInactivityTimer, true)
+    })
+
+    // Initialize the timer
+    resetInactivityTimer()
+
+    // Cleanup function
+    return () => {
+      // Clear the timer
+      if (inactivityTimer) {
+        clearTimeout(inactivityTimer)
+      }
+      // Remove event listeners
+      activityEvents.forEach(event => {
+        document.removeEventListener(event, resetInactivityTimer, true)
+      })
+    }
+  }, [user, INACTIVITY_TIMEOUT])
 
   // Step 1: For teachers - credential validation
   const validateCredentials = async (email, password, role) => {
@@ -179,8 +386,38 @@ export const AuthProvider = ({ children }) => {
       
       // Handle different possible response structures
       const responseData = response.data
-      const userData = responseData.user || responseData.data?.user || responseData
+      
+      // Log the full response for debugging
+      console.log('Login response:', responseData)
+      
+      // Extract user data - handle nested structures
+      let userData = responseData.user || responseData.data?.user
+      // If userData is not found, but responseData has user fields directly (not status/message), use those
+      if (!userData && (responseData.email || responseData.mobile || responseData.user_id) && !responseData.status) {
+        userData = responseData
+      }
+      
+      // Extract token from various possible locations
       const token = responseData.token || responseData.data?.token || responseData.access_token || responseData.jwt
+      
+      // Extract session_id from various possible locations
+      const sessionId = responseData.session_id || responseData.sessionId || 
+                       responseData.data?.session_id || responseData.data?.sessionId || 
+                       responseData.dbRow?.session_id || responseData.session?.session_id
+      
+      // Extract is_active from various possible locations
+      const isActive = responseData.is_active !== undefined ? responseData.is_active : 
+                      (responseData.data?.is_active !== undefined ? responseData.data.is_active :
+                      (responseData.dbRow?.is_active !== undefined ? responseData.dbRow.is_active :
+                      (responseData.session?.is_active !== undefined ? responseData.session.is_active : true)))
+      
+      // Extract expires_at if available
+      const expiresAt = responseData.expires_at || responseData.expiresAt || 
+                       responseData.data?.expires_at || responseData.data?.expiresAt ||
+                       responseData.session?.expires_at
+      
+      // Log extracted values for debugging
+      console.log('Extracted values:', { sessionId, isActive, expiresAt, hasToken: !!token })
       
       if (!token) {
         console.error('No token received in response:', responseData)
@@ -190,21 +427,116 @@ export const AuthProvider = ({ children }) => {
         }
       }
 
-      // Create user object if not provided
-      const finalUserData = userData || {
-        email: email || mobile,
-        userType: role,
-        id: responseData.user_id || responseData.id
+      // Create user object with all available data
+      const finalUserData = {
+        ...(userData || {}),
+        email: userData?.email || email || mobile,
+        userType: userData?.userType || userData?.user_type || userData?.role || role,
+        id: userData?.id || userData?.user_id || responseData.user_id || responseData.id,
+        session_id: sessionId,
+        is_active: isActive,
+        expires_at: expiresAt
       }
       
       // Store in localStorage
       localStorage.setItem('user', JSON.stringify(finalUserData))
       localStorage.setItem('token', token)
       
-      // Set user in context - this will trigger isAuthenticated to be true
-      setUser(finalUserData)
+      // Store session_id separately if available
+      if (sessionId) {
+        localStorage.setItem('session_id', sessionId)
+      }
       
-      return { success: true, user: finalUserData, token: token }
+      // Store is_active separately if available
+      if (isActive !== undefined) {
+        localStorage.setItem('is_active', String(isActive))
+      }
+      
+      // Validate session after login
+      if (sessionId) {
+        const validationResult = await validateSession(sessionId, token)
+        if (!validationResult.valid) {
+          console.error('Session validation failed after login:', validationResult.reason)
+          // Clear data and return error
+          await performLogout()
+          return {
+            success: false,
+            error: 'Session validation failed. Please try logging in again.'
+          }
+        }
+        console.log('Session validated successfully after login')
+      } else {
+        // No session_id received, logout
+        console.error('No session_id received from login response')
+        await performLogout()
+        return {
+          success: false,
+          error: 'Login failed: No session ID received. Please try again.'
+        }
+      }
+      
+      // Fetch user details from API using user ID
+      const userId = finalUserData.id
+      if (userId) {
+        try {
+          const userDetailsResponse = await axios.get(`${API_BASE_URL}/users/${userId}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          })
+          
+          // Merge fetched user details with existing user data
+          const fetchedUserDetails = userDetailsResponse.data?.data || userDetailsResponse.data || {}
+          const completeUserData = {
+            ...finalUserData,
+            ...fetchedUserDetails,
+            // Preserve important fields from login response
+            id: userId,
+            session_id: sessionId,
+            is_active: isActive,
+            expires_at: expiresAt,
+            email: finalUserData.email || fetchedUserDetails.email,
+            userType: finalUserData.userType || fetchedUserDetails.user_type || fetchedUserDetails.role
+          }
+          
+          // Update localStorage with complete user data
+          localStorage.setItem('user', JSON.stringify(completeUserData))
+          
+          // Set user in context with complete data
+          setUser(completeUserData)
+          
+          console.log('User details fetched and stored successfully')
+          
+          return { 
+            success: true, 
+            user: completeUserData, 
+            token: token, 
+            session_id: sessionId, 
+            is_active: isActive 
+          }
+        } catch (error) {
+          console.error('Error fetching user details:', error)
+          // Even if user details fetch fails, continue with login using basic user data
+          // Set user in context - this will trigger isAuthenticated to be true
+          setUser(finalUserData)
+          
+          return { 
+            success: true, 
+            user: finalUserData, 
+            token: token, 
+            session_id: sessionId, 
+            is_active: isActive 
+          }
+        }
+      } else {
+        // No user ID available, use basic user data
+        console.warn('No user ID found, skipping user details fetch')
+        // Set user in context - this will trigger isAuthenticated to be true
+        setUser(finalUserData)
+        
+        return { success: true, user: finalUserData, token: token, session_id: sessionId, is_active: isActive }
+      }
     } catch (error) {
       console.error('Final login error:', error)
       return {
@@ -265,12 +597,8 @@ export const AuthProvider = ({ children }) => {
     }
   }
 
-  const logout = () => {
-    localStorage.removeItem('user')
-    localStorage.removeItem('token')
-    localStorage.removeItem('otp')
-    setUser(null)
-    setOtp(null)
+  const logout = async () => {
+    await performLogout()
   }
 
   const value = {

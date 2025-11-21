@@ -26,11 +26,11 @@ const Login = () => {
   }, [isAuthenticated, navigate])
 
   const userTypes = [
-    { value: 'teacher', label: 'TEACHER' },
-    { value: 'parent', label: 'PARENT' },
-    { value: 'student', label: 'STUDENT' },
+    { value: 'teacher', label: 'teacher' },
+    { value: 'parent', label: 'parent' },
+    { value: 'student', label: 'student' },
     // { value: 'staff', label: 'School Staff' },
-    { value: 'admin', label: 'ADMIN' }
+    { value: 'admin', label: 'admin' }
   ]
 
   const validateStep1 = () => {

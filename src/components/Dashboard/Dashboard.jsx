@@ -474,6 +474,242 @@ const Dashboard = () => {
       }
     }
     
+    // Branch Registration State
+    const [branchForm, setBranchForm] = useState({
+      school_id: '',
+      branch_code: '',
+      branch_name: '',
+      address_line1: '',
+      city: '',
+      state: '',
+      pincode: '',
+      phone: '',
+      is_main_branch: false,
+      max_students: ''
+    })
+    const [branchErrors, setBranchErrors] = useState({})
+    const [branchSubmitting, setBranchSubmitting] = useState(false)
+    const [branchSchoolsList, setBranchSchoolsList] = useState([])
+    const [loadingBranchSchools, setLoadingBranchSchools] = useState(false)
+    const [branchSchoolsPage, setBranchSchoolsPage] = useState(1)
+    const [branchSchoolsTotalPages, setBranchSchoolsTotalPages] = useState(1)
+    const [branchSchoolsLimit] = useState(10)
+    
+    // Fetch schools for branch registration
+    const fetchBranchSchools = async (page = 1, limit = 10) => {
+      setLoadingBranchSchools(true)
+      try {
+        const response = await axios.get(`${API_BASE_URL}/schools`, {
+          headers: { 'Content-Type': 'application/json' },
+          params: {
+            page: page,
+            limit: limit
+          }
+        })
+        
+        let schools = []
+        
+        if (response.data && response.data.data) {
+          if (Array.isArray(response.data.data)) {
+            schools = response.data.data
+          } else if (response.data.data && Array.isArray(response.data.data.schools)) {
+            schools = response.data.data.schools
+          } else if (Array.isArray(response.data.data.list)) {
+            schools = response.data.data.list
+          } else if (Array.isArray(response.data.data.records)) {
+            schools = response.data.data.records
+          }
+        } else if (Array.isArray(response.data)) {
+          schools = response.data
+        }
+        
+        setBranchSchoolsList(schools)
+        
+        if (response.data && response.data.pagination) {
+          setBranchSchoolsTotalPages(response.data.pagination.total_pages || response.data.pagination.totalPages || 1)
+        } else if (response.data && response.data.total_pages) {
+          setBranchSchoolsTotalPages(response.data.total_pages)
+        } else if (response.data && response.data.totalPages) {
+          setBranchSchoolsTotalPages(response.data.totalPages)
+        } else {
+          if (schools.length === limit) {
+            setBranchSchoolsTotalPages(page + 1)
+          } else {
+            setBranchSchoolsTotalPages(page)
+          }
+        }
+        
+        setBranchSchoolsPage(page)
+        
+      } catch (error) {
+        console.error('Error fetching schools for branch:', error)
+        setBranchSchoolsList([])
+        setBranchSchoolsTotalPages(1)
+      } finally {
+        setLoadingBranchSchools(false)
+      }
+    }
+    
+    // Handle branch school pagination
+    const handleBranchSchoolPageChange = (newPage) => {
+      if (newPage >= 1 && newPage !== branchSchoolsPage && !loadingBranchSchools) {
+        setBranchSchoolsPage(newPage)
+        fetchBranchSchools(newPage, branchSchoolsLimit)
+      }
+    }
+    
+    // Branch Form Validation
+    const validateBranchForm = () => {
+      const errors = {}
+      
+      if (!branchForm.school_id) {
+        errors.school_id = 'School ID is required'
+      }
+      
+      if (!branchForm.branch_code.trim()) {
+        errors.branch_code = 'Branch code is required'
+      }
+      
+      if (!branchForm.branch_name.trim()) {
+        errors.branch_name = 'Branch name is required'
+      }
+      
+      if (!branchForm.address_line1.trim()) {
+        errors.address_line1 = 'Address line 1 is required'
+      }
+      
+      if (!branchForm.city.trim()) {
+        errors.city = 'City is required'
+      }
+      
+      if (!branchForm.state.trim()) {
+        errors.state = 'State is required'
+      }
+      
+      const pinRegex = /^\d{6}$/
+      if (!branchForm.pincode || !pinRegex.test(branchForm.pincode)) {
+        errors.pincode = 'Please enter a valid 6-digit pin code'
+      }
+      
+      const phoneRegex = /^\d{10}$/
+      if (!branchForm.phone || !phoneRegex.test(branchForm.phone)) {
+        errors.phone = 'Please enter a valid 10-digit phone number'
+      }
+      
+      if (branchForm.max_students && branchForm.max_students.trim()) {
+        const maxStudents = parseInt(branchForm.max_students)
+        if (isNaN(maxStudents) || maxStudents <= 0) {
+          errors.max_students = 'Please enter a valid positive number'
+        }
+      }
+      
+      setBranchErrors(errors)
+      return Object.keys(errors).length === 0
+    }
+    
+    // Handle Branch Form Change
+    const handleBranchFormChange = (e) => {
+      const { name, value, type, checked } = e.target
+      
+      let processedValue = value
+      if (name === 'phone' || name === 'pincode') {
+        processedValue = value.replace(/\D/g, '')
+        if (name === 'phone' && processedValue.length > 10) {
+          processedValue = processedValue.slice(0, 10)
+        }
+        if (name === 'pincode' && processedValue.length > 6) {
+          processedValue = processedValue.slice(0, 6)
+        }
+      }
+      
+      if (name === 'max_students') {
+        processedValue = value.replace(/\D/g, '')
+      }
+      
+      setBranchForm(prev => ({
+        ...prev,
+        [name]: type === 'checkbox' ? checked : processedValue
+      }))
+      
+      if (branchErrors[name]) {
+        setBranchErrors(prev => ({
+          ...prev,
+          [name]: ''
+        }))
+      }
+    }
+    
+    // Handle Branch Form Submit
+    const handleBranchSubmit = async (e) => {
+      e.preventDefault()
+      
+      if (!validateBranchForm()) {
+        return
+      }
+      
+      setBranchSubmitting(true)
+      
+      try {
+        const payload = {
+          school_id: parseInt(branchForm.school_id),
+          branch_code: branchForm.branch_code.trim(),
+          branch_name: branchForm.branch_name.trim(),
+          address_line1: branchForm.address_line1.trim(),
+          city: branchForm.city.trim(),
+          state: branchForm.state.trim(),
+          pincode: branchForm.pincode,
+          phone: branchForm.phone,
+          is_main_branch: branchForm.is_main_branch,
+          max_students: branchForm.max_students ? parseInt(branchForm.max_students) : null
+        }
+        
+        const response = await axios.post(`${API_BASE_URL}/branches`, payload, {
+          headers: { 'Content-Type': 'application/json' }
+        })
+        
+        const Swal = await loadSwal()
+        Swal.fire({
+          icon: 'success',
+          title: 'Success!',
+          text: 'Branch registered successfully!',
+          timer: 3000,
+          timerProgressBar: true,
+          showConfirmButton: false,
+          toast: true,
+          position: 'top-end'
+        })
+        
+        // Reset form
+        setBranchForm({
+          school_id: '',
+          branch_code: '',
+          branch_name: '',
+          address_line1: '',
+          city: '',
+          state: '',
+          pincode: '',
+          phone: '',
+          is_main_branch: false,
+          max_students: ''
+        })
+        
+      } catch (error) {
+        const errorMsg = error.response?.data?.message || 'Failed to register branch. Please try again.'
+        try {
+          const Swal = await loadSwal()
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: errorMsg
+          })
+        } catch (swalError) {
+          alert(errorMsg)
+        }
+      } finally {
+        setBranchSubmitting(false)
+      }
+    }
+    
     // Users Registration State
     const [userForm, setUserForm] = useState({
       school_id: '',
@@ -709,6 +945,15 @@ const Dashboard = () => {
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [registrationType])
     
+    // Fetch schools when Branch Registration tab is active
+    useEffect(() => {
+      if (registrationType === 'branch') {
+        setBranchSchoolsPage(1)
+        fetchBranchSchools(1, branchSchoolsLimit)
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [registrationType])
+    
     // Helper to load SweetAlert2 from CDN if not present
     const loadSwal = async () => {
       if (window.Swal) return window.Swal
@@ -846,16 +1091,14 @@ const Dashboard = () => {
       setUserSubmitting(true)
       
       try {
-        // Hash the password before sending
-        const hashedPassword = await hashPassword(userForm.password)
-        
+        // Send password as plain text (as user typed it)
         const payload = {
           school_id: parseInt(userForm.school_id),
           branch_id: parseInt(userForm.branch_id),
           username: userForm.username,
           email: userForm.email,
           phone: userForm.phone,
-          password: hashedPassword,
+          password: userForm.password,
           full_name: userForm.full_name,
           date_of_birth: userForm.date_of_birth,
           gender: userForm.gender,
@@ -1683,6 +1926,7 @@ const Dashboard = () => {
                     <div className="flex gap-2 overflow-x-auto">
                       {[
                         { value: 'school', label: 'School Registration' },
+                        { value: 'branch', label: 'Branch Registration' },
                         { value: 'users', label: 'Users Registration' },
                         { value: 'student', label: 'Student Registration' },
                         { value: 'parent', label: 'Parent Registration' }
@@ -1985,6 +2229,228 @@ const Dashboard = () => {
                             }`}
                           >
                             {schoolSubmitting ? 'Registering...' : 'Register School'}
+                          </button>
+                        </form>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Branch Registration */}
+                  {registrationType === 'branch' && (
+                    <div className="p-6 bg-gradient-to-br from-orange-50 to-red-50 rounded-lg border border-orange-200">
+                      <div className="flex items-center gap-3 mb-4">
+                        <span className="text-3xl">🏢</span>
+                        <h4 className="text-xl font-semibold text-gray-900">Branch Registration</h4>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-6">Register a new branch for an existing school.</p>
+                      <div className="bg-white rounded-lg p-6 shadow-sm">
+                        <form onSubmit={handleBranchSubmit} className="space-y-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-sm font-semibold text-gray-700 mb-2">School ID <span className="text-red-500">*</span></label>
+                              <select
+                                name="school_id"
+                                value={branchForm.school_id}
+                                onChange={handleBranchFormChange}
+                                disabled={loadingBranchSchools}
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                  branchErrors.school_id ? 'border-red-500' : 'border-gray-300'
+                                } ${loadingBranchSchools ? 'opacity-50 cursor-not-allowed' : ''}`}
+                              >
+                                <option value="">
+                                  {loadingBranchSchools ? 'Loading schools...' : 'Select school'}
+                                </option>
+                                {branchSchoolsList.map((school) => (
+                                  <option key={school.school_id} value={school.school_id}>
+                                    {school.school_id} - {school.school_name}
+                                  </option>
+                                ))}
+                              </select>
+                              {branchErrors.school_id && <p className="text-red-600 text-xs mt-1">{branchErrors.school_id}</p>}
+                              {!loadingBranchSchools && branchSchoolsList.length === 0 && (
+                                <p className="text-yellow-600 text-xs mt-1">No schools available. Please register a school first.</p>
+                              )}
+                              
+                              {/* School Pagination Controls */}
+                              {branchSchoolsList.length > 0 && (
+                                <div className="flex items-center justify-between gap-2 mt-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleBranchSchoolPageChange(branchSchoolsPage - 1)}
+                                    disabled={branchSchoolsPage <= 1 || loadingBranchSchools}
+                                    className={`px-3 py-1.5 text-sm font-semibold rounded-lg border transition-all duration-200 ${
+                                      branchSchoolsPage <= 1 || loadingBranchSchools
+                                        ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                                        : 'bg-white text-orange-600 border-orange-300 hover:bg-orange-50 hover:border-orange-400'
+                                    }`}
+                                  >
+                                    Previous
+                                  </button>
+                                  <span className="text-sm text-gray-600 font-medium">
+                                    Page {branchSchoolsPage} {branchSchoolsTotalPages > 1 && `of ${branchSchoolsTotalPages}`}
+                                    {branchSchoolsList.length > 0 && ` (${branchSchoolsList.length} schools)`}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleBranchSchoolPageChange(branchSchoolsPage + 1)}
+                                    disabled={branchSchoolsPage >= branchSchoolsTotalPages || loadingBranchSchools || branchSchoolsList.length < branchSchoolsLimit}
+                                    className={`px-3 py-1.5 text-sm font-semibold rounded-lg border transition-all duration-200 ${
+                                      branchSchoolsPage >= branchSchoolsTotalPages || loadingBranchSchools || branchSchoolsList.length < branchSchoolsLimit
+                                        ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                                        : 'bg-white text-orange-600 border-orange-300 hover:bg-orange-50 hover:border-orange-400'
+                                    }`}
+                                  >
+                                    Next
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                            <div>
+                              <label className="block text-sm font-semibold text-gray-700 mb-2">Branch Code <span className="text-red-500">*</span></label>
+                              <input
+                                type="text"
+                                name="branch_code"
+                                value={branchForm.branch_code}
+                                onChange={handleBranchFormChange}
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                  branchErrors.branch_code ? 'border-red-500' : 'border-gray-300'
+                                }`}
+                                placeholder="e.g., MAIN"
+                              />
+                              {branchErrors.branch_code && <p className="text-red-600 text-xs mt-1">{branchErrors.branch_code}</p>}
+                            </div>
+                          </div>
+                          
+                          <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">Branch Name <span className="text-red-500">*</span></label>
+                            <input
+                              type="text"
+                              name="branch_name"
+                              value={branchForm.branch_name}
+                              onChange={handleBranchFormChange}
+                              className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                branchErrors.branch_name ? 'border-red-500' : 'border-gray-300'
+                              }`}
+                              placeholder="e.g., Main Campus"
+                            />
+                            {branchErrors.branch_name && <p className="text-red-600 text-xs mt-1">{branchErrors.branch_name}</p>}
+                          </div>
+                          
+                          <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">Address Line 1 <span className="text-red-500">*</span></label>
+                            <input
+                              type="text"
+                              name="address_line1"
+                              value={branchForm.address_line1}
+                              onChange={handleBranchFormChange}
+                              className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                branchErrors.address_line1 ? 'border-red-500' : 'border-gray-300'
+                              }`}
+                              placeholder="Enter address line 1"
+                            />
+                            {branchErrors.address_line1 && <p className="text-red-600 text-xs mt-1">{branchErrors.address_line1}</p>}
+                          </div>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                              <label className="block text-sm font-semibold text-gray-700 mb-2">City <span className="text-red-500">*</span></label>
+                              <input
+                                type="text"
+                                name="city"
+                                value={branchForm.city}
+                                onChange={handleBranchFormChange}
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                  branchErrors.city ? 'border-red-500' : 'border-gray-300'
+                                }`}
+                                placeholder="Enter city"
+                              />
+                              {branchErrors.city && <p className="text-red-600 text-xs mt-1">{branchErrors.city}</p>}
+                            </div>
+                            <div>
+                              <label className="block text-sm font-semibold text-gray-700 mb-2">State <span className="text-red-500">*</span></label>
+                              <input
+                                type="text"
+                                name="state"
+                                value={branchForm.state}
+                                onChange={handleBranchFormChange}
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                  branchErrors.state ? 'border-red-500' : 'border-gray-300'
+                                }`}
+                                placeholder="Enter state"
+                              />
+                              {branchErrors.state && <p className="text-red-600 text-xs mt-1">{branchErrors.state}</p>}
+                            </div>
+                            <div>
+                              <label className="block text-sm font-semibold text-gray-700 mb-2">Pin Code <span className="text-red-500">*</span></label>
+                              <input
+                                type="text"
+                                name="pincode"
+                                value={branchForm.pincode}
+                                onChange={handleBranchFormChange}
+                                maxLength="6"
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                  branchErrors.pincode ? 'border-red-500' : 'border-gray-300'
+                                }`}
+                                placeholder="Enter 6-digit pin code"
+                              />
+                              {branchErrors.pincode && <p className="text-red-600 text-xs mt-1">{branchErrors.pincode}</p>}
+                            </div>
+                          </div>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-sm font-semibold text-gray-700 mb-2">Phone <span className="text-red-500">*</span></label>
+                              <input
+                                type="tel"
+                                name="phone"
+                                value={branchForm.phone}
+                                onChange={handleBranchFormChange}
+                                maxLength="10"
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                  branchErrors.phone ? 'border-red-500' : 'border-gray-300'
+                                }`}
+                                placeholder="Enter 10-digit phone number"
+                              />
+                              {branchErrors.phone && <p className="text-red-600 text-xs mt-1">{branchErrors.phone}</p>}
+                            </div>
+                            <div>
+                              <label className="block text-sm font-semibold text-gray-700 mb-2">Max Students</label>
+                              <input
+                                type="text"
+                                name="max_students"
+                                value={branchForm.max_students}
+                                onChange={handleBranchFormChange}
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                  branchErrors.max_students ? 'border-red-500' : 'border-gray-300'
+                                }`}
+                                placeholder="e.g., 1500"
+                              />
+                              {branchErrors.max_students && <p className="text-red-600 text-xs mt-1">{branchErrors.max_students}</p>}
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              name="is_main_branch"
+                              id="is_main_branch"
+                              checked={branchForm.is_main_branch}
+                              onChange={handleBranchFormChange}
+                              className="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
+                            />
+                            <label htmlFor="is_main_branch" className="text-sm font-semibold text-gray-700">
+                              Is Main Branch
+                            </label>
+                          </div>
+                          
+                          <button
+                            type="submit"
+                            disabled={branchSubmitting}
+                            className={`w-full bg-gradient-to-r from-orange-500 to-red-600 text-white px-6 py-3 rounded-lg font-semibold hover:shadow-lg transition-all duration-200 ${
+                              branchSubmitting ? 'opacity-60 cursor-not-allowed' : ''
+                            }`}
+                          >
+                            {branchSubmitting ? 'Registering...' : 'Register Branch'}
                           </button>
                         </form>
                       </div>

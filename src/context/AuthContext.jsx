@@ -12,7 +12,7 @@ export const useAuth = () => {
 }
 
 // API base URL
-const API_BASE_URL = 'http://localhost:3000/api'
+const API_BASE_URL = 'http://localhost:8080/api'
 
 // Hash password using Web Crypto API (SHA-256)
 const hashPassword = async (password) => {

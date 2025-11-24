@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import axios from 'axios'
 
-const API_BASE_URL = 'http://localhost:3000/api'
+const API_BASE_URL = 'http://localhost:8080/api'
 
 const sampleSchools = [
   { id: 1, name: 'Bright Future School (ID: 1)' },

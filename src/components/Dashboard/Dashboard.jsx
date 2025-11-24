@@ -5,8 +5,11 @@ import { useState } from 'react'
 import axios from 'axios'
 import TeacherDashboard from './TeacherDashboard'
 import ParentDashboard from './ParentDashboard'
+import StudentDashboard from './StudentDashboard'
+import RelationshipRegistration from '../Registration/RelationshipRegistration'
+import SearchableSelect from '../Registration/SearchableSelect'
 
-const API_BASE_URL = 'http://localhost:3000/api'
+const API_BASE_URL = 'http://localhost:8080/api'
 
 // Hash password using Web Crypto API (SHA-256)
 const hashPassword = async (password) => {
@@ -63,7 +66,7 @@ const Dashboard = () => {
     return labels[type] || type?.toUpperCase() || 'USER'
   }
 
-  // Teacher Dashboard Component - MOVED TO TeacherDashboard.jsx
+ 
   // const TeacherDashboard = () => (
   //   <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
   //     <div className="bg-white px-8 py-6 shadow-md flex justify-between items-center">
@@ -200,71 +203,6 @@ const Dashboard = () => {
   //             </div>
   //           )}
   //         </div>
-  //       </div>
-  //     </div>
-  //   </div>
-  // )
-
-  // Student Dashboard Component
-  const StudentDashboard = () => (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50">
-      <div className="bg-white px-8 py-6 shadow-md flex justify-between items-center">
-        <div>
-          <h1 className="m-0 text-gray-900 text-2xl font-bold">Welcome, {user?.name || user?.email}!</h1>
-          <p className="inline-block bg-gradient-to-r from-purple-500 to-pink-600 text-white px-3 py-1 rounded-xl text-xs font-semibold mt-2">
-            STUDENT
-          </p>
-        </div>
-        <button 
-          onClick={handleLogout} 
-          className="bg-red-600 text-white border-none px-5 py-2.5 rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200 hover:bg-red-700 hover:-translate-y-0.5 hover:shadow-md"
-        >
-          Logout
-        </button>
-      </div>
-
-      <div className="p-6 max-w-6xl mx-auto">
-        <div className="bg-white rounded-xl p-8 shadow-lg mb-6">
-          <div className="text-center py-6">
-            <div className="inline-block bg-gradient-to-r from-purple-500 to-pink-600 text-white text-6xl font-bold px-8 py-4 rounded-2xl mb-4 shadow-lg">
-              🎓
-            </div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-3">Student Dashboard</h2>
-            <p className="text-lg text-gray-600 mb-2">Welcome to your student portal!</p>
-            <p className="text-md text-purple-600 font-semibold">You have successfully logged in as a STUDENT.</p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow">
-            <h3 className="text-xl font-semibold mb-3 text-gray-900">📖 My Courses</h3>
-            <p className="text-gray-600 text-sm">View your enrolled courses and class schedules.</p>
-          </div>
-          <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow">
-            <h3 className="text-xl font-semibold mb-3 text-gray-900">📝 Assignments</h3>
-            <p className="text-gray-600 text-sm">Submit and track your assignment submissions.</p>
-          </div>
-          <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow">
-            <h3 className="text-xl font-semibold mb-3 text-gray-900">📊 Grades</h3>
-            <p className="text-gray-600 text-sm">Check your academic performance and grades.</p>
-          </div>
-          <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow">
-            <h3 className="text-xl font-semibold mb-3 text-gray-900">📅 Timetable</h3>
-            <p className="text-gray-600 text-sm">View your daily class schedule and timetable.</p>
-          </div>
-          <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow">
-            <h3 className="text-xl font-semibold mb-3 text-gray-900">📚 Study Materials</h3>
-            <p className="text-gray-600 text-sm">Access study materials and resources.</p>
-          </div>
-          <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow">
-            <h3 className="text-xl font-semibold mb-3 text-gray-900">💬 Messages</h3>
-            <p className="text-gray-600 text-sm">Communicate with teachers and classmates.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-
   // Admin Dashboard Component
   const AdminDashboard = () => {
     const [adminActiveTab, setAdminActiveTab] = useState('registration')
@@ -496,19 +434,16 @@ const Dashboard = () => {
     const [branchSubmitting, setBranchSubmitting] = useState(false)
     const [branchSchoolsList, setBranchSchoolsList] = useState([])
     const [loadingBranchSchools, setLoadingBranchSchools] = useState(false)
-    const [branchSchoolsPage, setBranchSchoolsPage] = useState(1)
-    const [branchSchoolsTotalPages, setBranchSchoolsTotalPages] = useState(1)
-    const [branchSchoolsLimit] = useState(10)
     
-    // Fetch schools for branch registration
-    const fetchBranchSchools = async (page = 1, limit = 10) => {
+    // Fetch all schools for branch registration (no pagination)
+    const fetchBranchSchools = async () => {
       setLoadingBranchSchools(true)
       try {
         const response = await axios.get(`${API_BASE_URL}/schools`, {
           headers: { 'Content-Type': 'application/json' },
           params: {
-            page: page,
-            limit: limit
+            page: 1,
+            limit: 10000 // Fetch all schools
           }
         })
         
@@ -530,36 +465,11 @@ const Dashboard = () => {
         
         setBranchSchoolsList(schools)
         
-        if (response.data && response.data.pagination) {
-          setBranchSchoolsTotalPages(response.data.pagination.total_pages || response.data.pagination.totalPages || 1)
-        } else if (response.data && response.data.total_pages) {
-          setBranchSchoolsTotalPages(response.data.total_pages)
-        } else if (response.data && response.data.totalPages) {
-          setBranchSchoolsTotalPages(response.data.totalPages)
-        } else {
-          if (schools.length === limit) {
-            setBranchSchoolsTotalPages(page + 1)
-          } else {
-            setBranchSchoolsTotalPages(page)
-          }
-        }
-        
-        setBranchSchoolsPage(page)
-        
       } catch (error) {
         console.error('Error fetching schools for branch:', error)
         setBranchSchoolsList([])
-        setBranchSchoolsTotalPages(1)
       } finally {
         setLoadingBranchSchools(false)
-      }
-    }
-    
-    // Handle branch school pagination
-    const handleBranchSchoolPageChange = (newPage) => {
-      if (newPage >= 1 && newPage !== branchSchoolsPage && !loadingBranchSchools) {
-        setBranchSchoolsPage(newPage)
-        fetchBranchSchools(newPage, branchSchoolsLimit)
       }
     }
     
@@ -741,25 +651,18 @@ const Dashboard = () => {
     const [showPassword, setShowPassword] = useState(false)
     const [schoolsList, setSchoolsList] = useState([])
     const [loadingSchools, setLoadingSchools] = useState(false)
-    const [schoolsPage, setSchoolsPage] = useState(1)
-    const [schoolsTotalPages, setSchoolsTotalPages] = useState(1)
-    const [schoolsLimit] = useState(10)
-    
     const [branchesList, setBranchesList] = useState([])
     const [loadingBranches, setLoadingBranches] = useState(false)
-    const [branchesPage, setBranchesPage] = useState(1)
-    const [branchesTotalPages, setBranchesTotalPages] = useState(1)
-    const [branchesLimit] = useState(5)
     
-    // Fetch schools list from API with pagination
-    const fetchSchools = async (page = 1, limit = 10) => {
+    // Fetch all schools from API (no pagination)
+    const fetchSchools = async () => {
       setLoadingSchools(true)
       try {
         const response = await axios.get(`${API_BASE_URL}/schools`, {
           headers: { 'Content-Type': 'application/json' },
           params: {
-            page: page,
-            limit: limit
+            page: 1,
+            limit: 10000 // Fetch all schools
           }
         })
         
@@ -791,42 +694,11 @@ const Dashboard = () => {
         
         setSchoolsList(schools)
         
-        // Extract pagination info from response (if available)
-        if (response.data && response.data.pagination) {
-          setSchoolsTotalPages(response.data.pagination.total_pages || response.data.pagination.totalPages || 1)
-        } else if (response.data && response.data.total_pages) {
-          setSchoolsTotalPages(response.data.total_pages)
-        } else if (response.data && response.data.totalPages) {
-          setSchoolsTotalPages(response.data.totalPages)
-        } else {
-          // Estimate total pages based on current data length
-          // If we got full limit (10 schools), there might be more pages
-          if (schools.length === limit) {
-            // Assume there are more pages (set to current page + 1, will be updated if we reach end)
-            setSchoolsTotalPages(page + 1)
-          } else {
-            // This is likely the last page
-            setSchoolsTotalPages(page)
-          }
-        }
-        
-        // Update current page
-        setSchoolsPage(page)
-        
       } catch (error) {
         console.error('Error fetching schools:', error)
         setSchoolsList([])
-        setSchoolsTotalPages(1)
       } finally {
         setLoadingSchools(false)
-      }
-    }
-    
-    // Handle school pagination
-    const handleSchoolPageChange = (newPage) => {
-      if (newPage >= 1 && newPage !== schoolsPage && !loadingSchools) {
-        setSchoolsPage(newPage)
-        fetchSchools(newPage, schoolsLimit)
       }
     }
     
@@ -845,15 +717,15 @@ const Dashboard = () => {
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [schoolsList])
     
-    // Fetch branches list from API with pagination
-    const fetchBranches = async (page = 1, limit = 5) => {
+    // Fetch all branches from API (no pagination)
+    const fetchBranches = async () => {
       setLoadingBranches(true)
       try {
         const response = await axios.get(`${API_BASE_URL}/branches`, {
           headers: { 'Content-Type': 'application/json' },
           params: {
-            page: page,
-            limit: limit
+            page: 1,
+            limit: 10000 // Fetch all branches
           }
         })
         
@@ -885,76 +757,34 @@ const Dashboard = () => {
         
         setBranchesList(branches)
         
-        // Extract pagination info from response (if available)
-        if (response.data && response.data.pagination) {
-          setBranchesTotalPages(response.data.pagination.total_pages || response.data.pagination.totalPages || 1)
-        } else if (response.data && response.data.total_pages) {
-          setBranchesTotalPages(response.data.total_pages)
-        } else if (response.data && response.data.totalPages) {
-          setBranchesTotalPages(response.data.totalPages)
-        } else {
-          // Estimate total pages based on current data length
-          // If we got full limit (5 branches), there might be more pages
-          if (branches.length === limit) {
-            // Assume there are more pages (set to current page + 1, will be updated if we reach end)
-            setBranchesTotalPages(page + 1)
-          } else {
-            // This is likely the last page
-            setBranchesTotalPages(page)
-          }
-        }
-        
-        // Update current page
-        setBranchesPage(page)
-        
       } catch (error) {
         console.error('Error fetching branches:', error)
         setBranchesList([])
-        setBranchesTotalPages(1)
       } finally {
         setLoadingBranches(false)
       }
     }
     
-    // Handle branch pagination
-    const handleBranchPageChange = (newPage) => {
-      if (newPage >= 1 && newPage !== branchesPage && !loadingBranches) {
-        setBranchesPage(newPage)
-        fetchBranches(newPage, branchesLimit)
-      }
-    }
     
-    // Clear branch selection if selected branch is not in current page list
-    useEffect(() => {
-      if (userForm.branch_id && branchesList.length > 0) {
-        const branchExists = branchesList.some(branch => branch.branch_id === userForm.branch_id || branch.branch_id === String(userForm.branch_id))
-        if (!branchExists) {
-          // Clear selection if branch is not in current page
-          setUserForm(prev => ({ ...prev, branch_id: '' }))
-          if (userErrors.branch_id) {
-            setUserErrors(prev => ({ ...prev, branch_id: '' }))
-          }
-        }
-      }
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [branchesList, branchesPage])
-    
-    // Fetch schools when Users Registration tab is active
+    // Fetch all schools and branches when Users Registration tab is active
     useEffect(() => {
       if (registrationType === 'users') {
-        setSchoolsPage(1)
-        fetchSchools(1, schoolsLimit) // Fetch first page with 10 schools
-        setBranchesPage(1)
-        fetchBranches(1, branchesLimit) // Fetch first page with 5 branches
+        if (schoolsList.length === 0 && !loadingSchools) {
+          fetchSchools()
+        }
+        if (branchesList.length === 0 && !loadingBranches) {
+          fetchBranches()
+        }
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [registrationType])
     
-    // Fetch schools when Branch Registration tab is active
+    // Fetch all schools when Branch Registration tab is active
     useEffect(() => {
       if (registrationType === 'branch') {
-        setBranchSchoolsPage(1)
-        fetchBranchSchools(1, branchSchoolsLimit)
+        if (branchSchoolsList.length === 0 && !loadingBranchSchools) {
+          fetchBranchSchools()
+        }
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [registrationType])
@@ -1177,6 +1007,7 @@ const Dashboard = () => {
     // Student Registration State
     const [studentForm, setStudentForm] = useState({
       school_id: '',
+      user_id: '',
       branch_id: '',
       admission_number: '',
       roll_number: '',
@@ -1203,25 +1034,23 @@ const Dashboard = () => {
     // Student Registration - Schools and Branches State
     const [studentSchoolsList, setStudentSchoolsList] = useState([])
     const [loadingStudentSchools, setLoadingStudentSchools] = useState(false)
-    const [studentSchoolsPage, setStudentSchoolsPage] = useState(1)
-    const [studentSchoolsTotalPages, setStudentSchoolsTotalPages] = useState(1)
-    const [studentSchoolsLimit] = useState(10)
-    
     const [studentBranchesList, setStudentBranchesList] = useState([])
     const [loadingStudentBranches, setLoadingStudentBranches] = useState(false)
-    const [studentBranchesPage, setStudentBranchesPage] = useState(1)
-    const [studentBranchesTotalPages, setStudentBranchesTotalPages] = useState(1)
-    const [studentBranchesLimit] = useState(5)
+    
+    // Student Registration - Users State
+    const [studentUsersList, setStudentUsersList] = useState([])
+    const [loadingStudentUsers, setLoadingStudentUsers] = useState(false)
     
     // Fetch schools for Student Registration
-    const fetchStudentSchools = async (page = 1, limit = 10) => {
+    // Fetch all schools for Student Registration (no pagination)
+    const fetchStudentSchools = async () => {
       setLoadingStudentSchools(true)
       try {
         const response = await axios.get(`${API_BASE_URL}/schools`, {
           headers: { 'Content-Type': 'application/json' },
           params: {
-            page: page,
-            limit: limit
+            page: 1,
+            limit: 10000 // Fetch all schools
           }
         })
         
@@ -1242,41 +1071,23 @@ const Dashboard = () => {
         }
         
         setStudentSchoolsList(schools)
-        
-        // Extract pagination info
-        if (response.data && response.data.pagination) {
-          setStudentSchoolsTotalPages(response.data.pagination.total_pages || response.data.pagination.totalPages || 1)
-        } else if (response.data && response.data.total_pages) {
-          setStudentSchoolsTotalPages(response.data.total_pages)
-        } else if (response.data && response.data.totalPages) {
-          setStudentSchoolsTotalPages(response.data.totalPages)
-        } else {
-          if (schools.length === limit) {
-            setStudentSchoolsTotalPages(page + 1)
-          } else {
-            setStudentSchoolsTotalPages(page)
-          }
-        }
-        
-        setStudentSchoolsPage(page)
       } catch (error) {
         console.error('Error fetching schools for student:', error)
         setStudentSchoolsList([])
-        setStudentSchoolsTotalPages(1)
       } finally {
         setLoadingStudentSchools(false)
       }
     }
     
-    // Fetch branches for Student Registration
-    const fetchStudentBranches = async (page = 1, limit = 5) => {
+    // Fetch all branches for Student Registration (no pagination)
+    const fetchStudentBranches = async () => {
       setLoadingStudentBranches(true)
       try {
         const response = await axios.get(`${API_BASE_URL}/branches`, {
           headers: { 'Content-Type': 'application/json' },
           params: {
-            page: page,
-            limit: limit
+            page: 1,
+            limit: 10000 // Fetch all branches
           }
         })
         
@@ -1297,82 +1108,82 @@ const Dashboard = () => {
         }
         
         setStudentBranchesList(branches)
-        
-        // Extract pagination info
-        if (response.data && response.data.pagination) {
-          setStudentBranchesTotalPages(response.data.pagination.total_pages || response.data.pagination.totalPages || 1)
-        } else if (response.data && response.data.total_pages) {
-          setStudentBranchesTotalPages(response.data.total_pages)
-        } else if (response.data && response.data.totalPages) {
-          setStudentBranchesTotalPages(response.data.totalPages)
-        } else {
-          if (branches.length === limit) {
-            setStudentBranchesTotalPages(page + 1)
-          } else {
-            setStudentBranchesTotalPages(page)
-          }
-        }
-        
-        setStudentBranchesPage(page)
       } catch (error) {
         console.error('Error fetching branches for student:', error)
         setStudentBranchesList([])
-        setStudentBranchesTotalPages(1)
       } finally {
         setLoadingStudentBranches(false)
       }
     }
     
-    // Handle student school pagination
-    const handleStudentSchoolPageChange = (newPage) => {
-      if (newPage >= 1 && newPage !== studentSchoolsPage && !loadingStudentSchools) {
-        setStudentSchoolsPage(newPage)
-        fetchStudentSchools(newPage, studentSchoolsLimit)
+    // Fetch users by school for Student Registration
+    const fetchStudentUsersBySchool = async (schoolId) => {
+      if (!schoolId) {
+        setStudentUsersList([])
+        setStudentForm(prev => ({ ...prev, user_id: '' }))
+        return
+      }
+      
+      setLoadingStudentUsers(true)
+      try {
+        const response = await axios.get(`${API_BASE_URL}/users/school/${schoolId}`, {
+          headers: { 'Content-Type': 'application/json' }
+        })
+        
+        let users = []
+        
+        console.log('Student Registration - API Response:', response.data)
+        
+        // Handle different response structures
+        if (Array.isArray(response.data)) {
+          users = response.data
+        } else if (response.data && Array.isArray(response.data.users)) {
+          // API returns { status: "success", users: [...] }
+          users = response.data.users
+        } else if (response.data && Array.isArray(response.data.data)) {
+          users = response.data.data
+        } else if (response.data && response.data.data && Array.isArray(response.data.data.users)) {
+          users = response.data.data.users
+        } else if (response.data && typeof response.data === 'object' && !Array.isArray(response.data)) {
+          // Single object response - wrap it in an array
+          if (response.data.user_id || response.data.school_id) {
+            users = [response.data]
+          }
+        }
+        
+        console.log('Student Registration - Parsed users:', users)
+        console.log('Student Registration - Users count:', users.length)
+        
+        setStudentUsersList(users)
+        
+      } catch (error) {
+        console.error('Error fetching users for student:', error)
+        setStudentUsersList([])
+      } finally {
+        setLoadingStudentUsers(false)
       }
     }
     
-    // Handle student branch pagination
-    const handleStudentBranchPageChange = (newPage) => {
-      if (newPage >= 1 && newPage !== studentBranchesPage && !loadingStudentBranches) {
-        setStudentBranchesPage(newPage)
-        fetchStudentBranches(newPage, studentBranchesLimit)
-      }
-    }
-    
-    // Clear student school/branch selection if not in current page list
+    // Fetch users when school is selected in Student Registration
     useEffect(() => {
-      if (studentForm.school_id && studentSchoolsList.length > 0) {
-        const schoolExists = studentSchoolsList.some(school => school.school_id === studentForm.school_id || school.school_id === String(studentForm.school_id))
-        if (!schoolExists) {
-          setStudentForm(prev => ({ ...prev, school_id: '' }))
-          if (studentErrors.school_id) {
-            setStudentErrors(prev => ({ ...prev, school_id: '' }))
-          }
-        }
+      if (studentForm.school_id) {
+        fetchStudentUsersBySchool(studentForm.school_id)
+      } else {
+        setStudentUsersList([])
+        setStudentForm(prev => ({ ...prev, user_id: '' }))
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [studentSchoolsList, studentSchoolsPage])
+    }, [studentForm.school_id])
     
-    useEffect(() => {
-      if (studentForm.branch_id && studentBranchesList.length > 0) {
-        const branchExists = studentBranchesList.some(branch => branch.branch_id === studentForm.branch_id || branch.branch_id === String(studentForm.branch_id))
-        if (!branchExists) {
-          setStudentForm(prev => ({ ...prev, branch_id: '' }))
-          if (studentErrors.branch_id) {
-            setStudentErrors(prev => ({ ...prev, branch_id: '' }))
-          }
-        }
-      }
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [studentBranchesList, studentBranchesPage])
-    
-    // Fetch schools and branches when Student Registration tab is active
+    // Fetch all schools and branches when Student Registration tab is active
     useEffect(() => {
       if (registrationType === 'student') {
-        setStudentSchoolsPage(1)
-        fetchStudentSchools(1, studentSchoolsLimit)
-        setStudentBranchesPage(1)
-        fetchStudentBranches(1, studentBranchesLimit)
+        if (studentSchoolsList.length === 0 && !loadingStudentSchools) {
+          fetchStudentSchools()
+        }
+        if (studentBranchesList.length === 0 && !loadingStudentBranches) {
+          fetchStudentBranches()
+        }
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [registrationType])
@@ -1380,6 +1191,7 @@ const Dashboard = () => {
     // Parent Registration State
     const [parentForm, setParentForm] = useState({
       school_id: '',
+      user_id: '',
       full_name: '',
       phone: '',
       whatsapp_number: '',
@@ -1399,19 +1211,20 @@ const Dashboard = () => {
     // Parent Registration - Schools State
     const [parentSchoolsList, setParentSchoolsList] = useState([])
     const [loadingParentSchools, setLoadingParentSchools] = useState(false)
-    const [parentSchoolsPage, setParentSchoolsPage] = useState(1)
-    const [parentSchoolsTotalPages, setParentSchoolsTotalPages] = useState(1)
-    const [parentSchoolsLimit] = useState(10)
     
-    // Fetch schools for Parent Registration
-    const fetchParentSchools = async (page = 1, limit = 10) => {
+    // Parent Registration - Users State
+    const [parentUsersList, setParentUsersList] = useState([])
+    const [loadingParentUsers, setLoadingParentUsers] = useState(false)
+    
+    // Fetch all schools for Parent Registration (no pagination)
+    const fetchParentSchools = async () => {
       setLoadingParentSchools(true)
       try {
         const response = await axios.get(`${API_BASE_URL}/schools`, {
           headers: { 'Content-Type': 'application/json' },
           params: {
-            page: page,
-            limit: limit
+            page: 1,
+            limit: 10000 // Fetch all schools
           }
         })
         
@@ -1432,37 +1245,11 @@ const Dashboard = () => {
         }
         
         setParentSchoolsList(schools)
-        
-        // Extract pagination info
-        if (response.data && response.data.pagination) {
-          setParentSchoolsTotalPages(response.data.pagination.total_pages || response.data.pagination.totalPages || 1)
-        } else if (response.data && response.data.total_pages) {
-          setParentSchoolsTotalPages(response.data.total_pages)
-        } else if (response.data && response.data.totalPages) {
-          setParentSchoolsTotalPages(response.data.totalPages)
-        } else {
-          if (schools.length === limit) {
-            setParentSchoolsTotalPages(page + 1)
-          } else {
-            setParentSchoolsTotalPages(page)
-          }
-        }
-        
-        setParentSchoolsPage(page)
       } catch (error) {
         console.error('Error fetching schools for parent:', error)
         setParentSchoolsList([])
-        setParentSchoolsTotalPages(1)
       } finally {
         setLoadingParentSchools(false)
-      }
-    }
-    
-    // Handle parent school pagination
-    const handleParentSchoolPageChange = (newPage) => {
-      if (newPage >= 1 && newPage !== parentSchoolsPage && !loadingParentSchools) {
-        setParentSchoolsPage(newPage)
-        fetchParentSchools(newPage, parentSchoolsLimit)
       }
     }
     
@@ -1478,13 +1265,73 @@ const Dashboard = () => {
         }
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [parentSchoolsList, parentSchoolsPage])
+    }, [parentSchoolsList])
     
-    // Fetch schools when Parent Registration tab is active
+    // Fetch users by school for Parent Registration
+    const fetchParentUsersBySchool = async (schoolId) => {
+      if (!schoolId) {
+        setParentUsersList([])
+        setParentForm(prev => ({ ...prev, user_id: '' }))
+        return
+      }
+      
+      setLoadingParentUsers(true)
+      try {
+        const response = await axios.get(`${API_BASE_URL}/users/school/${schoolId}`, {
+          headers: { 'Content-Type': 'application/json' }
+        })
+        
+        let users = []
+        
+        console.log('API Response:', response.data)
+        
+        // Handle different response structures
+        if (Array.isArray(response.data)) {
+          users = response.data
+        } else if (response.data && Array.isArray(response.data.users)) {
+          // API returns { status: "success", users: [...] }
+          users = response.data.users
+        } else if (response.data && Array.isArray(response.data.data)) {
+          users = response.data.data
+        } else if (response.data && response.data.data && Array.isArray(response.data.data.users)) {
+          users = response.data.data.users
+        } else if (response.data && typeof response.data === 'object' && !Array.isArray(response.data)) {
+          // Single object response - wrap it in an array
+          if (response.data.user_id || response.data.school_id) {
+            users = [response.data]
+          }
+        }
+        
+        console.log('Parsed users:', users)
+        console.log('Users count:', users.length)
+        
+        setParentUsersList(users)
+        
+      } catch (error) {
+        console.error('Error fetching users for parent:', error)
+        setParentUsersList([])
+      } finally {
+        setLoadingParentUsers(false)
+      }
+    }
+    
+    // Fetch users when school is selected in Parent Registration
+    useEffect(() => {
+      if (parentForm.school_id) {
+        fetchParentUsersBySchool(parentForm.school_id)
+      } else {
+        setParentUsersList([])
+        setParentForm(prev => ({ ...prev, user_id: '' }))
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [parentForm.school_id])
+    
+    // Fetch all schools when Parent Registration tab is active
     useEffect(() => {
       if (registrationType === 'parent') {
-        setParentSchoolsPage(1)
-        fetchParentSchools(1, parentSchoolsLimit)
+        if (parentSchoolsList.length === 0 && !loadingParentSchools) {
+          fetchParentSchools()
+        }
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [registrationType])
@@ -1571,6 +1418,11 @@ const Dashboard = () => {
         [name]: processedValue || value
       }))
       
+      // Clear user_id when school changes
+      if (name === 'school_id') {
+        setParentForm(prev => ({ ...prev, [name]: processedValue || value, user_id: '' }))
+      }
+      
       // Clear error for this field
       if (parentErrors[name]) {
         setParentErrors(prev => ({
@@ -1627,6 +1479,7 @@ const Dashboard = () => {
         // Reset form
         setParentForm({
           school_id: '',
+          user_id: '',
           full_name: '',
           phone: '',
           whatsapp_number: '',
@@ -1773,6 +1626,12 @@ const Dashboard = () => {
         ...prev,
         [name]: processedValue
       }))
+      
+      // Clear user_id when school changes
+      if (name === 'school_id') {
+        setStudentForm(prev => ({ ...prev, [name]: processedValue, user_id: '' }))
+      }
+      
       // Clear error for this field
       if (studentErrors[name]) {
         setStudentErrors(prev => ({
@@ -1836,6 +1695,7 @@ const Dashboard = () => {
         // Reset form
         setStudentForm({
           school_id: '',
+          user_id: '',
           branch_id: '',
           admission_number: '',
           roll_number: '',
@@ -1875,91 +1735,100 @@ const Dashboard = () => {
     }
     
     return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 to-red-50">
-        <div className="bg-white px-8 py-6 shadow-md flex justify-between items-center">
-          <div>
-            <h1 className="m-0 text-gray-900 text-2xl font-bold">Welcome, {user?.name || user?.email}!</h1>
-            <p className="inline-block bg-gradient-to-r from-orange-500 to-red-600 text-white px-3 py-1 rounded-xl text-xs font-semibold mt-2">
-              ADMIN
-            </p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-slate-800 via-gray-800 to-slate-900 px-8 py-6 shadow-xl">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-4">
+              <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-3">
+              </div>
+              <div>
+                <h1 className="m-0 text-white text-3xl font-bold">Welcome, {user?.name || user?.email}!</h1>
+                <p className="inline-block bg-white/20 backdrop-blur-sm text-white px-4 py-1.5 rounded-full text-sm font-semibold mt-2">
+                  ADMIN
+                </p>
+              </div>
+            </div>
+            <button 
+              onClick={handleLogout} 
+              className="bg-white text-slate-800 border-none px-6 py-3 rounded-xl text-sm font-bold cursor-pointer transition-all duration-200 hover:bg-slate-100 hover:shadow-lg hover:-translate-y-0.5"
+            >
+              Logout
+            </button>
           </div>
-          <button 
-            onClick={handleLogout} 
-            className="bg-red-600 text-white border-none px-5 py-2.5 rounded-lg text-sm font-semibold cursor-pointer transition-all duration-200 hover:bg-red-700 hover:-translate-y-0.5 hover:shadow-md"
-          >
-            Logout
-          </button>
         </div>
 
-        <div className="p-6 max-w-6xl mx-auto">
-          <div className="bg-white rounded-xl p-8 shadow-lg mb-6">
-            <div className="text-center py-6">
-              <div className="inline-block bg-gradient-to-r from-orange-500 to-red-600 text-white text-6xl font-bold px-8 py-4 rounded-2xl mb-4 shadow-lg">
-                ⚙️
+        <div className="p-6 max-w-7xl mx-auto">
+          {/* Welcome Card */}
+          <div className="bg-gradient-to-r from-slate-800 via-gray-800 to-slate-900 rounded-xl p-4 shadow-lg mb-4 text-white">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold mb-1">Admin Dashboard</h2>
+                <p className="text-sm text-slate-200">Manage your school system, users, and administrative tasks</p>
               </div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-3">Admin Dashboard</h2>
-              <p className="text-lg text-gray-600 mb-2">Welcome to your administrative portal!</p>
-              <p className="text-md text-orange-600 font-semibold">You have successfully logged in as an ADMIN.</p>
             </div>
           </div>
 
           {/* Admin Tabs */}
-          <div className="bg-white rounded-xl p-6 shadow-lg">
-            <div className="flex gap-2 border-b pb-2 mb-4">
+          <div className="bg-white rounded-xl shadow-lg p-4 mb-4">
+            <div className="flex gap-2 border-b border-slate-200 pb-2 mb-4 overflow-x-auto">
               {['registration', 'users', 'settings', 'reports'].map(tab => (
                 <button
                   key={tab}
                   onClick={() => setAdminActiveTab(tab)}
-                  className={`px-4 py-2 rounded-t-md -mb-px font-semibold transition-colors ${
+                  className={`px-4 py-2 rounded-t-md text-sm font-semibold transition-all duration-200 ${
                     adminActiveTab === tab 
-                      ? 'bg-white border border-b-0 border-gray-200 text-orange-600' 
-                      : 'text-gray-500 hover:text-gray-700'
+                      ? 'bg-slate-800 text-white border-b-2 border-slate-800' 
+                      : 'text-gray-500 hover:text-slate-700 hover:bg-slate-50'
                   }`}
-                    >
-                      {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                    </button>
-                  ))}
-                </div>
+                >
+                  {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                </button>
+              ))}
+            </div>
 
-                <div className="mt-4">
+                <div className="mt-2">
               {adminActiveTab === 'registration' && (
-                    <div>
-                  <h3 className="text-lg font-semibold mb-4">Registration Portal</h3>
+                    <div className="space-y-4">
+                  {/* Header Section */}
+                  <div className="bg-gradient-to-r from-slate-700 to-slate-900 rounded-lg p-3 text-white shadow-md">
+                    <h3 className="text-lg font-bold mb-1">Registration Portal</h3>
+                    <p className="text-xs text-slate-200">Register new schools, branches, and users in the system</p>
+                  </div>
                   
-                  {/* Registration Type Selector */}
-                  <div className="mb-6 border-b border-gray-200">
-                    <div className="flex gap-2 overflow-x-auto">
-                      {[
-                        { value: 'school', label: 'School Registration' },
-                        { value: 'branch', label: 'Branch Registration' },
-                        { value: 'users', label: 'Users Registration' },
-                        { value: 'student', label: 'Student Registration' },
-                        { value: 'parent', label: 'Parent Registration' }
-                      ].map(type => (
-                        <button
-                          key={type.value}
-                          onClick={() => setRegistrationType(type.value)}
-                          className={`px-4 py-2 font-semibold text-sm whitespace-nowrap transition-colors border-b-2 ${
-                            registrationType === type.value
-                              ? 'border-orange-500 text-orange-600'
-                              : 'border-transparent text-gray-500 hover:text-gray-700'
-                          }`}
-                        >
-                          {type.label}
-                        </button>
-                      ))}
-                    </div>
+                  {/* Registration Type Selector - Modern Card Grid */}
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 mb-4">
+                    {[
+                      { value: 'school', label: 'School', desc: 'Register School' },
+                      { value: 'branch', label: 'Branch', desc: 'Register Branch' },
+                      { value: 'users', label: 'Users', desc: 'Register Users' },
+                      { value: 'student', label: 'Student', desc: 'Register Student' },
+                      { value: 'parent', label: 'Parent', desc: 'Register Parent' },
+                      { value: 'relationship', label: 'Relationship', desc: 'Create Relationship' }
+                    ].map(type => (
+                      <button
+                        key={type.value}
+                        onClick={() => setRegistrationType(type.value)}
+                        className={`p-2 rounded-lg border transition-all duration-200 text-left ${
+                          registrationType === type.value
+                            ? 'border-slate-800 bg-slate-800 text-white shadow-md'
+                            : 'border-slate-200 bg-white text-gray-700 hover:border-slate-400 hover:shadow-sm'
+                        }`}
+                      >
+                        <div className="font-bold text-sm mb-0.5">{type.label}</div>
+                        <div className={`text-xs ${registrationType === type.value ? 'text-slate-200' : 'text-gray-500'}`}>{type.desc}</div>
+                      </button>
+                    ))}
                   </div>
 
                   {/* School Registration */}
                   {registrationType === 'school' && (
-                    <div className="p-6 bg-gradient-to-br from-orange-50 to-red-50 rounded-lg border border-orange-200">
-                      <div className="flex items-center gap-3 mb-4">
-                        <span className="text-3xl">🏫</span>
-                        <h4 className="text-xl font-semibold text-gray-900">School Registration</h4>
+                    <div className="bg-white rounded-lg shadow-md border border-slate-200 overflow-hidden">
+                      <div className="bg-gradient-to-r from-slate-700 to-slate-900 px-4 py-2">
+                        <h4 className="text-base font-bold text-white">School Registration</h4>
+                        <p className="text-xs text-slate-200 mt-0.5">Fill in the details to register a new school</p>
                       </div>
-                      <p className="text-sm text-gray-600 mb-6">Register a new school in the system.</p>
-                      <div className="bg-white rounded-lg p-6 shadow-sm">
+                      <div className="p-4">
                         <form onSubmit={handleSchoolSubmit} className="space-y-4">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
@@ -1969,8 +1838,8 @@ const Dashboard = () => {
                                 name="school_code"
                                 value={schoolForm.school_code}
                                 onChange={handleSchoolFormChange}
-                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
-                                  schoolErrors.school_code ? 'border-red-500' : 'border-gray-300'
+                                className={`w-full px-4 py-2.5 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-slate-500 transition-all ${
+                                  schoolErrors.school_code ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300'
                                 }`}
                                 placeholder="e.g., SCH001"
                               />
@@ -1983,7 +1852,7 @@ const Dashboard = () => {
                                 name="school_name"
                                 value={schoolForm.school_name}
                                 onChange={handleSchoolFormChange}
-                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                   schoolErrors.school_name ? 'border-red-500' : 'border-gray-300'
                                 }`}
                                 placeholder="Enter school name"
@@ -1999,7 +1868,7 @@ const Dashboard = () => {
                               name="address_line1"
                               value={schoolForm.address_line1}
                               onChange={handleSchoolFormChange}
-                              className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                              className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                 schoolErrors.address_line1 ? 'border-red-500' : 'border-gray-300'
                               }`}
                               placeholder="Enter address line 1"
@@ -2014,7 +1883,7 @@ const Dashboard = () => {
                               name="address_line2"
                               value={schoolForm.address_line2}
                               onChange={handleSchoolFormChange}
-                              className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
+                              className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500"
                               placeholder="Enter address line 2 (optional)"
                             />
                           </div>
@@ -2027,7 +1896,7 @@ const Dashboard = () => {
                                 name="city"
                                 value={schoolForm.city}
                                 onChange={handleSchoolFormChange}
-                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                   schoolErrors.city ? 'border-red-500' : 'border-gray-300'
                                 }`}
                                 placeholder="Enter city"
@@ -2041,7 +1910,7 @@ const Dashboard = () => {
                                 name="state"
                                 value={schoolForm.state}
                                 onChange={handleSchoolFormChange}
-                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                   schoolErrors.state ? 'border-red-500' : 'border-gray-300'
                                 }`}
                                 placeholder="Enter state"
@@ -2056,7 +1925,7 @@ const Dashboard = () => {
                                 value={schoolForm.pincode}
                                 onChange={handleSchoolFormChange}
                                 maxLength="6"
-                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                   schoolErrors.pincode ? 'border-red-500' : 'border-gray-300'
                                 }`}
                                 placeholder="Enter 6-digit pin code"
@@ -2074,7 +1943,7 @@ const Dashboard = () => {
                                 value={schoolForm.phone}
                                 onChange={handleSchoolFormChange}
                                 maxLength="10"
-                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                   schoolErrors.phone ? 'border-red-500' : 'border-gray-300'
                                 }`}
                                 placeholder="Enter 10-digit phone number"
@@ -2088,7 +1957,7 @@ const Dashboard = () => {
                                 name="email"
                                 value={schoolForm.email}
                                 onChange={handleSchoolFormChange}
-                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                   schoolErrors.email ? 'border-red-500' : 'border-gray-300'
                                 }`}
                                 placeholder="contact@school.com"
@@ -2104,7 +1973,7 @@ const Dashboard = () => {
                               name="website"
                               value={schoolForm.website}
                               onChange={handleSchoolFormChange}
-                              className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                              className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                 schoolErrors.website ? 'border-red-500' : 'border-gray-300'
                               }`}
                               placeholder="https://school.com"
@@ -2119,7 +1988,7 @@ const Dashboard = () => {
                                 name="board_type"
                                 value={schoolForm.board_type}
                                 onChange={handleSchoolFormChange}
-                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                   schoolErrors.board_type ? 'border-red-500' : 'border-gray-300'
                                 }`}
                               >
@@ -2138,7 +2007,7 @@ const Dashboard = () => {
                                 name="academic_session_start_month"
                                 value={schoolForm.academic_session_start_month}
                                 onChange={handleSchoolFormChange}
-                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                   schoolErrors.academic_session_start_month ? 'border-red-500' : 'border-gray-300'
                                 }`}
                               >
@@ -2167,7 +2036,7 @@ const Dashboard = () => {
                                 name="grading_system"
                                 value={schoolForm.grading_system}
                                 onChange={handleSchoolFormChange}
-                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                   schoolErrors.grading_system ? 'border-red-500' : 'border-gray-300'
                                 }`}
                               >
@@ -2185,7 +2054,7 @@ const Dashboard = () => {
                                 name="affiliation_number"
                                 value={schoolForm.affiliation_number}
                                 onChange={handleSchoolFormChange}
-                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                   schoolErrors.affiliation_number ? 'border-red-500' : 'border-gray-300'
                                 }`}
                                 placeholder="Enter affiliation number"
@@ -2200,7 +2069,7 @@ const Dashboard = () => {
                               name="recognition_status"
                               value={schoolForm.recognition_status}
                               onChange={handleSchoolFormChange}
-                              className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                              className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                 schoolErrors.recognition_status ? 'border-red-500' : 'border-gray-300'
                               }`}
                             >
@@ -2219,7 +2088,7 @@ const Dashboard = () => {
                               id="rte_compliance"
                               checked={schoolForm.rte_compliance}
                               onChange={handleSchoolFormChange}
-                              className="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
+                              className="w-4 h-4 text-slate-600 border-gray-300 rounded focus:ring-slate-500"
                             />
                             <label htmlFor="rte_compliance" className="text-sm font-semibold text-gray-700">
                               RTE Compliance
@@ -2229,7 +2098,7 @@ const Dashboard = () => {
                           <button
                             type="submit"
                             disabled={schoolSubmitting}
-                            className={`w-full bg-gradient-to-r from-orange-500 to-red-600 text-white px-6 py-3 rounded-lg font-semibold hover:shadow-lg transition-all duration-200 ${
+                            className={`w-full bg-gradient-to-r from-slate-700 to-slate-900 text-white px-6 py-3 rounded-lg font-semibold hover:shadow-lg transition-all duration-200 ${
                               schoolSubmitting ? 'opacity-60 cursor-not-allowed' : ''
                             }`}
                           >
@@ -2242,72 +2111,37 @@ const Dashboard = () => {
 
                   {/* Branch Registration */}
                   {registrationType === 'branch' && (
-                    <div className="p-6 bg-gradient-to-br from-orange-50 to-red-50 rounded-lg border border-orange-200">
-                      <div className="flex items-center gap-3 mb-4">
-                        <span className="text-3xl">🏢</span>
-                        <h4 className="text-xl font-semibold text-gray-900">Branch Registration</h4>
+                    <div className="bg-white rounded-lg shadow-md border border-slate-200 overflow-hidden">
+                      <div className="bg-gradient-to-r from-slate-700 to-slate-900 px-4 py-2">
+                        <h4 className="text-base font-bold text-white">Branch Registration</h4>
+                        <p className="text-xs text-slate-200 mt-0.5">Fill in the details to register a new branch for an existing school</p>
                       </div>
-                      <p className="text-sm text-gray-600 mb-6">Register a new branch for an existing school.</p>
-                      <div className="bg-white rounded-lg p-6 shadow-sm">
+                      <div className="p-4">
                         <form onSubmit={handleBranchSubmit} className="space-y-4">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
+                            <div style={{ width: '100%' }}>
                               <label className="block text-sm font-semibold text-gray-700 mb-2">School ID <span className="text-red-500">*</span></label>
-                              <select
+                              <SearchableSelect
                                 name="school_id"
                                 value={branchForm.school_id}
                                 onChange={handleBranchFormChange}
                                 disabled={loadingBranchSchools}
-                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
-                                  branchErrors.school_id ? 'border-red-500' : 'border-gray-300'
-                                } ${loadingBranchSchools ? 'opacity-50 cursor-not-allowed' : ''}`}
-                              >
-                                <option value="">
-                                  {loadingBranchSchools ? 'Loading schools...' : 'Select school'}
-                                </option>
-                                {branchSchoolsList.map((school) => (
-                                  <option key={school.school_id} value={school.school_id}>
-                                    {school.school_id} - {school.school_name}
-                                  </option>
-                                ))}
-                              </select>
+                                loading={loadingBranchSchools}
+                                error={!!branchErrors.school_id}
+                                placeholder={loadingBranchSchools ? 'Loading schools...' : 'Select school'}
+                                options={branchSchoolsList.map(school => ({
+                                  value: school.school_id,
+                                  label: `${school.school_id} - ${school.school_name}`
+                                }))}
+                                className="w-full"
+                                style={{ width: '100%' }}
+                              />
                               {branchErrors.school_id && <p className="text-red-600 text-xs mt-1">{branchErrors.school_id}</p>}
                               {!loadingBranchSchools && branchSchoolsList.length === 0 && (
                                 <p className="text-yellow-600 text-xs mt-1">No schools available. Please register a school first.</p>
                               )}
-                              
-                              {/* School Pagination Controls */}
-                              {branchSchoolsList.length > 0 && (
-                                <div className="flex items-center justify-between gap-2 mt-2">
-                                  <button
-                                    type="button"
-                                    onClick={() => handleBranchSchoolPageChange(branchSchoolsPage - 1)}
-                                    disabled={branchSchoolsPage <= 1 || loadingBranchSchools}
-                                    className={`px-3 py-1.5 text-sm font-semibold rounded-lg border transition-all duration-200 ${
-                                      branchSchoolsPage <= 1 || loadingBranchSchools
-                                        ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
-                                        : 'bg-white text-orange-600 border-orange-300 hover:bg-orange-50 hover:border-orange-400'
-                                    }`}
-                                  >
-                                    Previous
-                                  </button>
-                                  <span className="text-sm text-gray-600 font-medium">
-                                    Page {branchSchoolsPage} {branchSchoolsTotalPages > 1 && `of ${branchSchoolsTotalPages}`}
-                                    {branchSchoolsList.length > 0 && ` (${branchSchoolsList.length} schools)`}
-                                  </span>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleBranchSchoolPageChange(branchSchoolsPage + 1)}
-                                    disabled={branchSchoolsPage >= branchSchoolsTotalPages || loadingBranchSchools || branchSchoolsList.length < branchSchoolsLimit}
-                                    className={`px-3 py-1.5 text-sm font-semibold rounded-lg border transition-all duration-200 ${
-                                      branchSchoolsPage >= branchSchoolsTotalPages || loadingBranchSchools || branchSchoolsList.length < branchSchoolsLimit
-                                        ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
-                                        : 'bg-white text-orange-600 border-orange-300 hover:bg-orange-50 hover:border-orange-400'
-                                    }`}
-                                  >
-                                    Next
-                                  </button>
-                                </div>
+                              {!loadingBranchSchools && branchSchoolsList.length > 0 && (
+                                <p className="text-gray-500 text-xs mt-1">Found {branchSchoolsList.length} school(s). Type to search.</p>
                               )}
                             </div>
                             <div>
@@ -2317,7 +2151,7 @@ const Dashboard = () => {
                                 name="branch_code"
                                 value={branchForm.branch_code}
                                 onChange={handleBranchFormChange}
-                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                   branchErrors.branch_code ? 'border-red-500' : 'border-gray-300'
                                 }`}
                                 placeholder="e.g., MAIN"
@@ -2333,7 +2167,7 @@ const Dashboard = () => {
                               name="branch_name"
                               value={branchForm.branch_name}
                               onChange={handleBranchFormChange}
-                              className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                              className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                 branchErrors.branch_name ? 'border-red-500' : 'border-gray-300'
                               }`}
                               placeholder="e.g., Main Campus"
@@ -2348,7 +2182,7 @@ const Dashboard = () => {
                               name="address_line1"
                               value={branchForm.address_line1}
                               onChange={handleBranchFormChange}
-                              className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                              className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                 branchErrors.address_line1 ? 'border-red-500' : 'border-gray-300'
                               }`}
                               placeholder="Enter address line 1"
@@ -2364,7 +2198,7 @@ const Dashboard = () => {
                                 name="city"
                                 value={branchForm.city}
                                 onChange={handleBranchFormChange}
-                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                   branchErrors.city ? 'border-red-500' : 'border-gray-300'
                                 }`}
                                 placeholder="Enter city"
@@ -2378,7 +2212,7 @@ const Dashboard = () => {
                                 name="state"
                                 value={branchForm.state}
                                 onChange={handleBranchFormChange}
-                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                   branchErrors.state ? 'border-red-500' : 'border-gray-300'
                                 }`}
                                 placeholder="Enter state"
@@ -2393,7 +2227,7 @@ const Dashboard = () => {
                                 value={branchForm.pincode}
                                 onChange={handleBranchFormChange}
                                 maxLength="6"
-                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                   branchErrors.pincode ? 'border-red-500' : 'border-gray-300'
                                 }`}
                                 placeholder="Enter 6-digit pin code"
@@ -2411,7 +2245,7 @@ const Dashboard = () => {
                                 value={branchForm.phone}
                                 onChange={handleBranchFormChange}
                                 maxLength="10"
-                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                   branchErrors.phone ? 'border-red-500' : 'border-gray-300'
                                 }`}
                                 placeholder="Enter 10-digit phone number"
@@ -2425,7 +2259,7 @@ const Dashboard = () => {
                                 name="max_students"
                                 value={branchForm.max_students}
                                 onChange={handleBranchFormChange}
-                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                   branchErrors.max_students ? 'border-red-500' : 'border-gray-300'
                                 }`}
                                 placeholder="e.g., 1500"
@@ -2441,7 +2275,7 @@ const Dashboard = () => {
                               id="is_main_branch"
                               checked={branchForm.is_main_branch}
                               onChange={handleBranchFormChange}
-                              className="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
+                              className="w-4 h-4 text-slate-600 border-gray-300 rounded focus:ring-slate-500"
                             />
                             <label htmlFor="is_main_branch" className="text-sm font-semibold text-gray-700">
                               Is Main Branch
@@ -2451,7 +2285,7 @@ const Dashboard = () => {
                           <button
                             type="submit"
                             disabled={branchSubmitting}
-                            className={`w-full bg-gradient-to-r from-orange-500 to-red-600 text-white px-6 py-3 rounded-lg font-semibold hover:shadow-lg transition-all duration-200 ${
+                            className={`w-full bg-gradient-to-r from-slate-700 to-slate-900 text-white px-6 py-3 rounded-lg font-semibold hover:shadow-lg transition-all duration-200 ${
                               branchSubmitting ? 'opacity-60 cursor-not-allowed' : ''
                             }`}
                           >
@@ -2464,131 +2298,62 @@ const Dashboard = () => {
 
                   {/* Users Registration */}
                   {registrationType === 'users' && (
-                    <div className="p-6 bg-gradient-to-br from-orange-50 to-red-50 rounded-lg border border-orange-200">
-                      <div className="flex items-center gap-3 mb-4">
-                        <span className="text-3xl">👥</span>
-                        <h4 className="text-xl font-semibold text-gray-900">Users Registration</h4>
+                    <div className="bg-white rounded-lg shadow-md border border-slate-200 overflow-hidden">
+                      <div className="bg-gradient-to-r from-slate-700 to-slate-900 px-4 py-2">
+                        <h4 className="text-base font-bold text-white">Users Registration</h4>
+                        <p className="text-xs text-slate-200 mt-0.5">Register new users (Principal, Teacher, Parent, Admin, Student) in the system</p>
                       </div>
-                      <p className="text-sm text-gray-600 mb-6">Register new users (Principal, Teacher, Parent, Admin, Student) in the system.</p>
-                      <div className="bg-white rounded-lg p-6 shadow-sm">
+                      <div className="p-4">
                         <form onSubmit={handleUserSubmit} className="space-y-4">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
+                            <div style={{ width: '100%' }}>
                               <label className="block text-sm font-semibold text-gray-700 mb-2">School ID <span className="text-red-500">*</span></label>
-                              <select
+                              <SearchableSelect
                                 name="school_id"
                                 value={userForm.school_id}
                                 onChange={handleUserFormChange}
                                 disabled={loadingSchools}
-                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
-                                  userErrors.school_id ? 'border-red-500' : 'border-gray-300'
-                                } ${loadingSchools ? 'opacity-50 cursor-not-allowed' : ''}`}
-                              >
-                                <option value="">
-                                  {loadingSchools ? 'Loading schools...' : 'Select school'}
-                                </option>
-                                {schoolsList.map((school) => (
-                                  <option key={school.school_id} value={school.school_id}>
-                                    {school.school_id} - {school.school_name}
-                                  </option>
-                                ))}
-                              </select>
+                                loading={loadingSchools}
+                                error={!!userErrors.school_id}
+                                placeholder={loadingSchools ? 'Loading schools...' : 'Select school'}
+                                options={schoolsList.map(school => ({
+                                  value: school.school_id,
+                                  label: `${school.school_id} - ${school.school_name}`
+                                }))}
+                                className="w-full"
+                                style={{ width: '100%' }}
+                              />
                               {userErrors.school_id && <p className="text-red-600 text-xs mt-1">{userErrors.school_id}</p>}
                               {!loadingSchools && schoolsList.length === 0 && (
                                 <p className="text-yellow-600 text-xs mt-1">No schools available. Please register a school first.</p>
                               )}
-                              
-                              {/* School Pagination Controls */}
-                              {schoolsList.length > 0 && (
-                                <div className="flex items-center justify-between gap-2 mt-2">
-                                  <button
-                                    type="button"
-                                    onClick={() => handleSchoolPageChange(schoolsPage - 1)}
-                                    disabled={schoolsPage <= 1 || loadingSchools}
-                                    className={`px-3 py-1.5 text-sm font-semibold rounded-lg border transition-all duration-200 ${
-                                      schoolsPage <= 1 || loadingSchools
-                                        ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
-                                        : 'bg-white text-orange-600 border-orange-300 hover:bg-orange-50 hover:border-orange-400'
-                                    }`}
-                                  >
-                                    Previous
-                                  </button>
-                                  <span className="text-sm text-gray-600 font-medium">
-                                    Page {schoolsPage} {schoolsTotalPages > 1 && `of ${schoolsTotalPages}`}
-                                    {schoolsList.length > 0 && ` (${schoolsList.length} schools)`}
-                                  </span>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleSchoolPageChange(schoolsPage + 1)}
-                                    disabled={schoolsPage >= schoolsTotalPages || loadingSchools || schoolsList.length < schoolsLimit}
-                                    className={`px-3 py-1.5 text-sm font-semibold rounded-lg border transition-all duration-200 ${
-                                      schoolsPage >= schoolsTotalPages || loadingSchools || schoolsList.length < schoolsLimit
-                                        ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
-                                        : 'bg-white text-orange-600 border-orange-300 hover:bg-orange-50 hover:border-orange-400'
-                                    }`}
-                                  >
-                                    Next
-                                  </button>
-                                </div>
+                              {!loadingSchools && schoolsList.length > 0 && (
+                                <p className="text-gray-500 text-xs mt-1">Found {schoolsList.length} school(s). Type to search.</p>
                               )}
                             </div>
-                            <div>
+                            <div style={{ width: '100%' }}>
                               <label className="block text-sm font-semibold text-gray-700 mb-2">Branch ID <span className="text-red-500">*</span></label>
-                              <select
+                              <SearchableSelect
                                 name="branch_id"
                                 value={userForm.branch_id}
                                 onChange={handleUserFormChange}
                                 disabled={loadingBranches}
-                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
-                                  userErrors.branch_id ? 'border-red-500' : 'border-gray-300'
-                                } ${loadingBranches ? 'opacity-50 cursor-not-allowed' : ''}`}
-                              >
-                                <option value="">
-                                  {loadingBranches ? 'Loading branches...' : 'Select branch'}
-                                </option>
-                                {branchesList.map((branch) => (
-                                  <option key={branch.branch_id} value={branch.branch_id}>
-                                    {branch.branch_id} - {branch.branch_name}
-                                  </option>
-                                ))}
-                              </select>
+                                loading={loadingBranches}
+                                error={!!userErrors.branch_id}
+                                placeholder={loadingBranches ? 'Loading branches...' : 'Select branch'}
+                                options={branchesList.map(branch => ({
+                                  value: branch.branch_id,
+                                  label: `${branch.branch_id} - ${branch.branch_name}`
+                                }))}
+                                className="w-full"
+                                style={{ width: '100%' }}
+                              />
                               {userErrors.branch_id && <p className="text-red-600 text-xs mt-1">{userErrors.branch_id}</p>}
                               {!loadingBranches && branchesList.length === 0 && (
                                 <p className="text-yellow-600 text-xs mt-1">No branches available. Please register a branch first.</p>
                               )}
-                              
-                              {/* Branch Pagination Controls */}
-                              {branchesList.length > 0 && (
-                                <div className="flex items-center justify-between gap-2 mt-2">
-                                  <button
-                                    type="button"
-                                    onClick={() => handleBranchPageChange(branchesPage - 1)}
-                                    disabled={branchesPage <= 1 || loadingBranches}
-                                    className={`px-3 py-1.5 text-sm font-semibold rounded-lg border transition-all duration-200 ${
-                                      branchesPage <= 1 || loadingBranches
-                                        ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
-                                        : 'bg-white text-orange-600 border-orange-300 hover:bg-orange-50 hover:border-orange-400'
-                                    }`}
-                                  >
-                                    Previous
-                                  </button>
-                                  <span className="text-sm text-gray-600 font-medium">
-                                    Page {branchesPage} {branchesTotalPages > 1 && `of ${branchesTotalPages}`}
-                                    {branchesList.length > 0 && ` (${branchesList.length} branches)`}
-                                  </span>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleBranchPageChange(branchesPage + 1)}
-                                    disabled={branchesPage >= branchesTotalPages || loadingBranches || branchesList.length < branchesLimit}
-                                    className={`px-3 py-1.5 text-sm font-semibold rounded-lg border transition-all duration-200 ${
-                                      branchesPage >= branchesTotalPages || loadingBranches || branchesList.length < branchesLimit
-                                        ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
-                                        : 'bg-white text-orange-600 border-orange-300 hover:bg-orange-50 hover:border-orange-400'
-                                    }`}
-                                  >
-                                    Next
-                                  </button>
-                                </div>
+                              {!loadingBranches && branchesList.length > 0 && (
+                                <p className="text-gray-500 text-xs mt-1">Found {branchesList.length} branch(es). Type to search.</p>
                               )}
                             </div>
                           </div>
@@ -2601,7 +2366,7 @@ const Dashboard = () => {
                                 name="username"
                                 value={userForm.username}
                                 onChange={handleUserFormChange}
-                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                   userErrors.username ? 'border-red-500' : 'border-gray-300'
                                 }`}
                                 placeholder="Enter username"
@@ -2614,7 +2379,7 @@ const Dashboard = () => {
                                 name="role"
                                 value={userForm.role}
                                 onChange={handleUserFormChange}
-                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                   userErrors.role ? 'border-red-500' : 'border-gray-300'
                                 }`}
                               >
@@ -2636,7 +2401,7 @@ const Dashboard = () => {
                               name="full_name"
                               value={userForm.full_name}
                               onChange={handleUserFormChange}
-                              className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                              className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                 userErrors.full_name ? 'border-red-500' : 'border-gray-300'
                               }`}
                               placeholder="Enter full name"
@@ -2652,7 +2417,7 @@ const Dashboard = () => {
                                 name="email"
                                 value={userForm.email}
                                 onChange={handleUserFormChange}
-                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                   userErrors.email ? 'border-red-500' : 'border-gray-300'
                                 }`}
                                 placeholder="user@example.com"
@@ -2667,7 +2432,7 @@ const Dashboard = () => {
                                 value={userForm.phone}
                                 onChange={handleUserFormChange}
                                 maxLength="10"
-                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                   userErrors.phone ? 'border-red-500' : 'border-gray-300'
                                 }`}
                                 placeholder="Enter 10-digit phone number"
@@ -2684,7 +2449,7 @@ const Dashboard = () => {
                                 name="password"
                                 value={userForm.password}
                                 onChange={handleUserFormChange}
-                                className={`w-full px-4 py-2 pr-12 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                className={`w-full px-4 py-2 pr-12 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                   userErrors.password ? 'border-red-500' : 'border-gray-300'
                                 }`}
                                 placeholder="Enter password (min 6 characters)"
@@ -2718,7 +2483,7 @@ const Dashboard = () => {
                                 name="date_of_birth"
                                 value={userForm.date_of_birth}
                                 onChange={handleUserFormChange}
-                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                   userErrors.date_of_birth ? 'border-red-500' : 'border-gray-300'
                                 }`}
                               />
@@ -2730,7 +2495,7 @@ const Dashboard = () => {
                                 name="gender"
                                 value={userForm.gender}
                                 onChange={handleUserFormChange}
-                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                   userErrors.gender ? 'border-red-500' : 'border-gray-300'
                                 }`}
                               >
@@ -2748,7 +2513,7 @@ const Dashboard = () => {
                                 name="employee_id"
                                 value={userForm.employee_id}
                                 onChange={handleUserFormChange}
-                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                   userErrors.employee_id ? 'border-red-500' : 'border-gray-300'
                                 }`}
                                 placeholder="Enter employee ID"
@@ -2764,7 +2529,7 @@ const Dashboard = () => {
                               name="designation"
                               value={userForm.designation}
                               onChange={handleUserFormChange}
-                              className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                              className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                 userErrors.designation ? 'border-red-500' : 'border-gray-300'
                               }`}
                               placeholder="Enter designation"
@@ -2781,7 +2546,7 @@ const Dashboard = () => {
                                 value={userForm.alternate_phone}
                                 onChange={handleUserFormChange}
                                 maxLength="10"
-                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                   userErrors.alternate_phone ? 'border-red-500' : 'border-gray-300'
                                 }`}
                                 placeholder="Enter alternate phone (optional)"
@@ -2796,7 +2561,7 @@ const Dashboard = () => {
                                 value={userForm.emergency_contact}
                                 onChange={handleUserFormChange}
                                 maxLength="10"
-                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                   userErrors.emergency_contact ? 'border-red-500' : 'border-gray-300'
                                 }`}
                                 placeholder="Enter emergency contact (optional)"
@@ -2812,7 +2577,7 @@ const Dashboard = () => {
                               name="address_line1"
                               value={userForm.address_line1}
                               onChange={handleUserFormChange}
-                              className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                              className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                 userErrors.address_line1 ? 'border-red-500' : 'border-gray-300'
                               }`}
                               placeholder="Enter address line 1"
@@ -2828,7 +2593,7 @@ const Dashboard = () => {
                                 name="city"
                                 value={userForm.city}
                                 onChange={handleUserFormChange}
-                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                   userErrors.city ? 'border-red-500' : 'border-gray-300'
                                 }`}
                                 placeholder="Enter city"
@@ -2842,7 +2607,7 @@ const Dashboard = () => {
                                 name="state"
                                 value={userForm.state}
                                 onChange={handleUserFormChange}
-                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                   userErrors.state ? 'border-red-500' : 'border-gray-300'
                                 }`}
                                 placeholder="Enter state"
@@ -2857,7 +2622,7 @@ const Dashboard = () => {
                                 value={userForm.pincode}
                                 onChange={handleUserFormChange}
                                 maxLength="6"
-                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                   userErrors.pincode ? 'border-red-500' : 'border-gray-300'
                                 }`}
                                 placeholder="Enter 6-digit pin code"
@@ -2869,7 +2634,7 @@ const Dashboard = () => {
                           <button
                             type="submit"
                             disabled={userSubmitting}
-                            className={`w-full bg-gradient-to-r from-orange-500 to-red-600 text-white px-6 py-3 rounded-lg font-semibold hover:shadow-lg transition-all duration-200 ${
+                            className={`w-full bg-gradient-to-r from-slate-700 to-slate-900 text-white px-6 py-3 rounded-lg font-semibold hover:shadow-lg transition-all duration-200 ${
                               userSubmitting ? 'opacity-60 cursor-not-allowed' : ''
                             }`}
                           >
@@ -2882,134 +2647,94 @@ const Dashboard = () => {
 
                   {/* Student Registration */}
                   {registrationType === 'student' && (
-                    <div className="p-6 bg-gradient-to-br from-orange-50 to-red-50 rounded-lg border border-orange-200">
-                      <div className="flex items-center gap-3 mb-4">
-                        <span className="text-3xl">🎓</span>
-                        <h4 className="text-xl font-semibold text-gray-900">Student Registration</h4>
+                    <div className="bg-white rounded-lg shadow-md border border-slate-200 overflow-hidden">
+                      <div className="bg-gradient-to-r from-slate-700 to-slate-900 px-4 py-2">
+                        <h4 className="text-base font-bold text-white">Student Registration</h4>
+                        <p className="text-xs text-slate-200 mt-0.5">Fill in the details to register a new student in the system</p>
                       </div>
-                      <p className="text-sm text-gray-600 mb-6">Register new students in the system.</p>
-                      <div className="bg-white rounded-lg p-6 shadow-sm">
+                      <div className="p-4">
                         <form onSubmit={handleStudentSubmit} className="space-y-4">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
+                            <div style={{ width: '100%' }}>
                               <label className="block text-sm font-semibold text-gray-700 mb-2">School ID <span className="text-red-500">*</span></label>
-                              <select
+                              <SearchableSelect
                                 name="school_id"
                                 value={studentForm.school_id}
                                 onChange={handleStudentFormChange}
                                 disabled={loadingStudentSchools}
-                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
-                                  studentErrors.school_id ? 'border-red-500' : 'border-gray-300'
-                                } ${loadingStudentSchools ? 'opacity-50 cursor-not-allowed' : ''}`}
-                              >
-                                <option value="">
-                                  {loadingStudentSchools ? 'Loading schools...' : 'Select school'}
-                                </option>
-                                {studentSchoolsList.map((school) => (
-                                  <option key={school.school_id} value={school.school_id}>
-                                    {school.school_id} - {school.school_name}
-                                  </option>
-                                ))}
-                              </select>
+                                loading={loadingStudentSchools}
+                                error={!!studentErrors.school_id}
+                                placeholder={loadingStudentSchools ? 'Loading schools...' : 'Select school'}
+                                options={studentSchoolsList.map(school => ({
+                                  value: school.school_id,
+                                  label: `${school.school_id} - ${school.school_name}`
+                                }))}
+                                className="w-full"
+                                style={{ width: '100%' }}
+                              />
                               {studentErrors.school_id && <p className="text-red-600 text-xs mt-1">{studentErrors.school_id}</p>}
                               {!loadingStudentSchools && studentSchoolsList.length === 0 && (
                                 <p className="text-yellow-600 text-xs mt-1">No schools available. Please register a school first.</p>
                               )}
-                              
-                              {/* Student School Pagination Controls */}
-                              {studentSchoolsList.length > 0 && (
-                                <div className="flex items-center justify-between gap-2 mt-2">
-                                  <button
-                                    type="button"
-                                    onClick={() => handleStudentSchoolPageChange(studentSchoolsPage - 1)}
-                                    disabled={studentSchoolsPage <= 1 || loadingStudentSchools}
-                                    className={`px-3 py-1.5 text-sm font-semibold rounded-lg border transition-all duration-200 ${
-                                      studentSchoolsPage <= 1 || loadingStudentSchools
-                                        ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
-                                        : 'bg-white text-orange-600 border-orange-300 hover:bg-orange-50 hover:border-orange-400'
-                                    }`}
-                                  >
-                                    Previous
-                                  </button>
-                                  <span className="text-sm text-gray-600 font-medium">
-                                    Page {studentSchoolsPage} {studentSchoolsTotalPages > 1 && `of ${studentSchoolsTotalPages}`}
-                                    {studentSchoolsList.length > 0 && ` (${studentSchoolsList.length} schools)`}
-                                  </span>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleStudentSchoolPageChange(studentSchoolsPage + 1)}
-                                    disabled={studentSchoolsPage >= studentSchoolsTotalPages || loadingStudentSchools || studentSchoolsList.length < studentSchoolsLimit}
-                                    className={`px-3 py-1.5 text-sm font-semibold rounded-lg border transition-all duration-200 ${
-                                      studentSchoolsPage >= studentSchoolsTotalPages || loadingStudentSchools || studentSchoolsList.length < studentSchoolsLimit
-                                        ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
-                                        : 'bg-white text-orange-600 border-orange-300 hover:bg-orange-50 hover:border-orange-400'
-                                    }`}
-                                  >
-                                    Next
-                                  </button>
-                                </div>
+                              {!loadingStudentSchools && studentSchoolsList.length > 0 && (
+                                <p className="text-gray-500 text-xs mt-1">Found {studentSchoolsList.length} school(s). Type to search.</p>
                               )}
                             </div>
-                            <div>
+                            <div style={{ width: '100%' }}>
                               <label className="block text-sm font-semibold text-gray-700 mb-2">Branch ID <span className="text-red-500">*</span></label>
-                              <select
+                              <SearchableSelect
                                 name="branch_id"
                                 value={studentForm.branch_id}
                                 onChange={handleStudentFormChange}
                                 disabled={loadingStudentBranches}
-                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
-                                  studentErrors.branch_id ? 'border-red-500' : 'border-gray-300'
-                                } ${loadingStudentBranches ? 'opacity-50 cursor-not-allowed' : ''}`}
-                              >
-                                <option value="">
-                                  {loadingStudentBranches ? 'Loading branches...' : 'Select branch'}
-                                </option>
-                                {studentBranchesList.map((branch) => (
-                                  <option key={branch.branch_id} value={branch.branch_id}>
-                                    {branch.branch_id} - {branch.branch_name}
-                                  </option>
-                                ))}
-                              </select>
+                                loading={loadingStudentBranches}
+                                error={!!studentErrors.branch_id}
+                                placeholder={loadingStudentBranches ? 'Loading branches...' : 'Select branch'}
+                                options={studentBranchesList.map(branch => ({
+                                  value: branch.branch_id,
+                                  label: `${branch.branch_id} - ${branch.branch_name}`
+                                }))}
+                                className="w-full"
+                                style={{ width: '100%' }}
+                              />
                               {studentErrors.branch_id && <p className="text-red-600 text-xs mt-1">{studentErrors.branch_id}</p>}
                               {!loadingStudentBranches && studentBranchesList.length === 0 && (
                                 <p className="text-yellow-600 text-xs mt-1">No branches available. Please register a branch first.</p>
                               )}
-                              
-                              {/* Student Branch Pagination Controls */}
-                              {studentBranchesList.length > 0 && (
-                                <div className="flex items-center justify-between gap-2 mt-2">
-                                  <button
-                                    type="button"
-                                    onClick={() => handleStudentBranchPageChange(studentBranchesPage - 1)}
-                                    disabled={studentBranchesPage <= 1 || loadingStudentBranches}
-                                    className={`px-3 py-1.5 text-sm font-semibold rounded-lg border transition-all duration-200 ${
-                                      studentBranchesPage <= 1 || loadingStudentBranches
-                                        ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
-                                        : 'bg-white text-orange-600 border-orange-300 hover:bg-orange-50 hover:border-orange-400'
-                                    }`}
-                                  >
-                                    Previous
-                                  </button>
-                                  <span className="text-sm text-gray-600 font-medium">
-                                    Page {studentBranchesPage} {studentBranchesTotalPages > 1 && `of ${studentBranchesTotalPages}`}
-                                    {studentBranchesList.length > 0 && ` (${studentBranchesList.length} branches)`}
-                                  </span>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleStudentBranchPageChange(studentBranchesPage + 1)}
-                                    disabled={studentBranchesPage >= studentBranchesTotalPages || loadingStudentBranches || studentBranchesList.length < studentBranchesLimit}
-                                    className={`px-3 py-1.5 text-sm font-semibold rounded-lg border transition-all duration-200 ${
-                                      studentBranchesPage >= studentBranchesTotalPages || loadingStudentBranches || studentBranchesList.length < studentBranchesLimit
-                                        ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
-                                        : 'bg-white text-orange-600 border-orange-300 hover:bg-orange-50 hover:border-orange-400'
-                                    }`}
-                                  >
-                                    Next
-                                  </button>
-                                </div>
+                              {!loadingStudentBranches && studentBranchesList.length > 0 && (
+                                <p className="text-gray-500 text-xs mt-1">Found {studentBranchesList.length} branch(es). Type to search.</p>
                               )}
                             </div>
                           </div>
+                          
+                          {/* Users Dropdown */}
+                          {studentForm.school_id && (
+                            <div style={{ width: '100%' }}>
+                              <label className="block text-sm font-semibold text-gray-700 mb-2">User <span className="text-red-500">*</span></label>
+                              <SearchableSelect
+                                name="user_id"
+                                value={studentForm.user_id}
+                                onChange={handleStudentFormChange}
+                                disabled={loadingStudentUsers}
+                                loading={loadingStudentUsers}
+                                error={!!studentErrors.user_id}
+                                placeholder={loadingStudentUsers ? 'Loading users...' : 'Select user'}
+                                options={studentUsersList.map((user, index) => ({
+                                  value: user.user_id || user.id,
+                                  label: `${user.user_id || user.id} - ${user.full_name || user.name || user.email || 'N/A'}`
+                                }))}
+                                className="w-full"
+                                style={{ width: '100%' }}
+                              />
+                              {studentErrors.user_id && <p className="text-red-600 text-xs mt-1">{studentErrors.user_id}</p>}
+                              {!loadingStudentUsers && studentForm.school_id && studentUsersList.length === 0 && (
+                                <p className="text-yellow-600 text-xs mt-1">No users available for this school.</p>
+                              )}
+                              {!loadingStudentUsers && studentUsersList.length > 0 && (
+                                <p className="text-green-600 text-xs mt-1">Found {studentUsersList.length} user(s) for this school. Type to search.</p>
+                              )}
+                            </div>
+                          )}
                           
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
@@ -3019,7 +2744,7 @@ const Dashboard = () => {
                                 name="admission_number"
                                 value={studentForm.admission_number}
                                 onChange={handleStudentFormChange}
-                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                   studentErrors.admission_number ? 'border-red-500' : 'border-gray-300'
                                 }`}
                                 placeholder="e.g., ADM-2025-001"
@@ -3033,7 +2758,7 @@ const Dashboard = () => {
                                 name="roll_number"
                                 value={studentForm.roll_number}
                                 onChange={handleStudentFormChange}
-                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                   studentErrors.roll_number ? 'border-red-500' : 'border-gray-300'
                                 }`}
                                 placeholder="e.g., 10A-01"
@@ -3049,7 +2774,7 @@ const Dashboard = () => {
                               name="full_name"
                               value={studentForm.full_name}
                               onChange={handleStudentFormChange}
-                              className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                              className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                 studentErrors.full_name ? 'border-red-500' : 'border-gray-300'
                               }`}
                               placeholder="Enter full name"
@@ -3065,7 +2790,7 @@ const Dashboard = () => {
                                 name="date_of_birth"
                                 value={studentForm.date_of_birth}
                                 onChange={handleStudentFormChange}
-                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                   studentErrors.date_of_birth ? 'border-red-500' : 'border-gray-300'
                                 }`}
                               />
@@ -3077,7 +2802,7 @@ const Dashboard = () => {
                                 name="gender"
                                 value={studentForm.gender}
                                 onChange={handleStudentFormChange}
-                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                   studentErrors.gender ? 'border-red-500' : 'border-gray-300'
                                 }`}
                               >
@@ -3094,7 +2819,7 @@ const Dashboard = () => {
                                 name="blood_group"
                                 value={studentForm.blood_group}
                                 onChange={handleStudentFormChange}
-                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                   studentErrors.blood_group ? 'border-red-500' : 'border-gray-300'
                                 }`}
                               >
@@ -3120,7 +2845,7 @@ const Dashboard = () => {
                               value={studentForm.aadhar_number}
                               onChange={handleStudentFormChange}
                               maxLength="12"
-                              className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                              className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                 studentErrors.aadhar_number ? 'border-red-500' : 'border-gray-300'
                               }`}
                               placeholder="Enter 12-digit Aadhar number"
@@ -3136,7 +2861,7 @@ const Dashboard = () => {
                                 name="admission_date"
                                 value={studentForm.admission_date}
                                 onChange={handleStudentFormChange}
-                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                   studentErrors.admission_date ? 'border-red-500' : 'border-gray-300'
                                 }`}
                               />
@@ -3148,7 +2873,7 @@ const Dashboard = () => {
                                 name="admission_class"
                                 value={studentForm.admission_class}
                                 onChange={handleStudentFormChange}
-                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                   studentErrors.admission_class ? 'border-red-500' : 'border-gray-300'
                                 }`}
                               >
@@ -3174,7 +2899,7 @@ const Dashboard = () => {
                                 name="current_status"
                                 value={studentForm.current_status}
                                 onChange={handleStudentFormChange}
-                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                   studentErrors.current_status ? 'border-red-500' : 'border-gray-300'
                                 }`}
                               >
@@ -3193,7 +2918,7 @@ const Dashboard = () => {
                               name="address_line1"
                               value={studentForm.address_line1}
                               onChange={handleStudentFormChange}
-                              className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                              className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                 studentErrors.address_line1 ? 'border-red-500' : 'border-gray-300'
                               }`}
                               placeholder="Enter address line 1"
@@ -3209,7 +2934,7 @@ const Dashboard = () => {
                                 name="city"
                                 value={studentForm.city}
                                 onChange={handleStudentFormChange}
-                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                   studentErrors.city ? 'border-red-500' : 'border-gray-300'
                                 }`}
                                 placeholder="Enter city"
@@ -3223,7 +2948,7 @@ const Dashboard = () => {
                                 name="state"
                                 value={studentForm.state}
                                 onChange={handleStudentFormChange}
-                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                   studentErrors.state ? 'border-red-500' : 'border-gray-300'
                                 }`}
                                 placeholder="Enter state"
@@ -3238,7 +2963,7 @@ const Dashboard = () => {
                                 value={studentForm.pincode}
                                 onChange={handleStudentFormChange}
                                 maxLength="6"
-                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                   studentErrors.pincode ? 'border-red-500' : 'border-gray-300'
                                 }`}
                                 placeholder="Enter 6-digit pin code"
@@ -3253,7 +2978,7 @@ const Dashboard = () => {
                               name="medical_conditions"
                               value={studentForm.medical_conditions}
                               onChange={handleStudentFormChange}
-                              className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
+                              className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500"
                               rows="3"
                               placeholder="Enter any medical conditions (optional)"
                             />
@@ -3267,7 +2992,7 @@ const Dashboard = () => {
                                 name="emergency_contact_name"
                                 value={studentForm.emergency_contact_name}
                                 onChange={handleStudentFormChange}
-                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                   studentErrors.emergency_contact_name ? 'border-red-500' : 'border-gray-300'
                                 }`}
                                 placeholder="Enter emergency contact name"
@@ -3282,7 +3007,7 @@ const Dashboard = () => {
                                 value={studentForm.emergency_contact_phone}
                                 onChange={handleStudentFormChange}
                                 maxLength="10"
-                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                   studentErrors.emergency_contact_phone ? 'border-red-500' : 'border-gray-300'
                                 }`}
                                 placeholder="Enter 10-digit emergency contact phone"
@@ -3298,7 +3023,7 @@ const Dashboard = () => {
                               name="student_photo_url"
                               value={studentForm.student_photo_url}
                               onChange={handleStudentFormChange}
-                              className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                              className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                 studentErrors.student_photo_url ? 'border-red-500' : 'border-gray-300'
                               }`}
                               placeholder="https://example.com/photos/student.png (optional)"
@@ -3309,7 +3034,7 @@ const Dashboard = () => {
                           <button
                             type="submit"
                             disabled={studentSubmitting}
-                            className={`w-full bg-gradient-to-r from-orange-500 to-red-600 text-white px-6 py-3 rounded-lg font-semibold hover:shadow-lg transition-all duration-200 ${
+                            className={`w-full bg-gradient-to-r from-slate-700 to-slate-900 text-white px-6 py-3 rounded-lg font-semibold hover:shadow-lg transition-all duration-200 ${
                               studentSubmitting ? 'opacity-60 cursor-not-allowed' : ''
                             }`}
                           >
@@ -3322,73 +3047,68 @@ const Dashboard = () => {
 
                   {/* Parent Registration */}
                   {registrationType === 'parent' && (
-                    <div className="p-6 bg-gradient-to-br from-orange-50 to-red-50 rounded-lg border border-orange-200">
-                      <div className="flex items-center gap-3 mb-4">
-                        <span className="text-3xl">👨‍👩‍👧‍👦</span>
-                        <h4 className="text-xl font-semibold text-gray-900">Parent Registration</h4>
+                    <div className="bg-white rounded-lg shadow-md border border-slate-200 overflow-hidden">
+                      <div className="bg-gradient-to-r from-slate-700 to-slate-900 px-4 py-2">
+                        <h4 className="text-base font-bold text-white">Parent Registration</h4>
+                        <p className="text-xs text-slate-200 mt-0.5">Fill in the details to register a new parent in the system</p>
                       </div>
-                      <p className="text-sm text-gray-600 mb-6">Register new parents in the system.</p>
-                      <div className="bg-white rounded-lg p-6 shadow-sm">
+                      <div className="p-4">
                         <form onSubmit={handleParentSubmit} className="space-y-4">
-                          <div>
+                          <div style={{ width: '100%' }}>
                             <label className="block text-sm font-semibold text-gray-700 mb-2">School ID <span className="text-red-500">*</span></label>
-                            <select
+                            <SearchableSelect
                               name="school_id"
                               value={parentForm.school_id}
                               onChange={handleParentFormChange}
                               disabled={loadingParentSchools}
-                              className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
-                                parentErrors.school_id ? 'border-red-500' : 'border-gray-300'
-                              } ${loadingParentSchools ? 'opacity-50 cursor-not-allowed' : ''}`}
-                            >
-                              <option value="">
-                                {loadingParentSchools ? 'Loading schools...' : 'Select school'}
-                              </option>
-                              {parentSchoolsList.map((school) => (
-                                <option key={school.school_id} value={school.school_id}>
-                                  {school.school_id} - {school.school_name}
-                                </option>
-                              ))}
-                            </select>
+                              loading={loadingParentSchools}
+                              error={!!parentErrors.school_id}
+                              placeholder={loadingParentSchools ? 'Loading schools...' : 'Select school'}
+                              options={parentSchoolsList.map(school => ({
+                                value: school.school_id,
+                                label: `${school.school_id} - ${school.school_name}`
+                              }))}
+                              className="w-full"
+                              style={{ width: '100%' }}
+                            />
                             {parentErrors.school_id && <p className="text-red-600 text-xs mt-1">{parentErrors.school_id}</p>}
                             {!loadingParentSchools && parentSchoolsList.length === 0 && (
                               <p className="text-yellow-600 text-xs mt-1">No schools available. Please register a school first.</p>
                             )}
-                            
-                            {/* Parent School Pagination Controls */}
-                            {parentSchoolsList.length > 0 && (
-                              <div className="flex items-center justify-between gap-2 mt-2">
-                                <button
-                                  type="button"
-                                  onClick={() => handleParentSchoolPageChange(parentSchoolsPage - 1)}
-                                  disabled={parentSchoolsPage <= 1 || loadingParentSchools}
-                                  className={`px-3 py-1.5 text-sm font-semibold rounded-lg border transition-all duration-200 ${
-                                    parentSchoolsPage <= 1 || loadingParentSchools
-                                      ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
-                                      : 'bg-white text-orange-600 border-orange-300 hover:bg-orange-50 hover:border-orange-400'
-                                  }`}
-                                >
-                                  Previous
-                                </button>
-                                <span className="text-sm text-gray-600 font-medium">
-                                  Page {parentSchoolsPage} {parentSchoolsTotalPages > 1 && `of ${parentSchoolsTotalPages}`}
-                                  {parentSchoolsList.length > 0 && ` (${parentSchoolsList.length} schools)`}
-                                </span>
-                                <button
-                                  type="button"
-                                  onClick={() => handleParentSchoolPageChange(parentSchoolsPage + 1)}
-                                  disabled={parentSchoolsPage >= parentSchoolsTotalPages || loadingParentSchools || parentSchoolsList.length < parentSchoolsLimit}
-                                  className={`px-3 py-1.5 text-sm font-semibold rounded-lg border transition-all duration-200 ${
-                                    parentSchoolsPage >= parentSchoolsTotalPages || loadingParentSchools || parentSchoolsList.length < parentSchoolsLimit
-                                      ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
-                                      : 'bg-white text-orange-600 border-orange-300 hover:bg-orange-50 hover:border-orange-400'
-                                  }`}
-                                >
-                                  Next
-                                </button>
-                              </div>
+                            {!loadingParentSchools && parentSchoolsList.length > 0 && (
+                              <p className="text-gray-500 text-xs mt-1">Found {parentSchoolsList.length} school(s). Type to search.</p>
                             )}
                           </div>
+                          
+                          {/* Users Dropdown */}
+                          {parentForm.school_id && (
+                            <div style={{ width: '100%' }}>
+                              <label className="block text-sm font-semibold text-gray-700 mb-2">User <span className="text-red-500">*</span></label>
+                              <SearchableSelect
+                                name="user_id"
+                                value={parentForm.user_id}
+                                onChange={handleParentFormChange}
+                                disabled={loadingParentUsers}
+                                loading={loadingParentUsers}
+                                error={!!parentErrors.user_id}
+                                placeholder={loadingParentUsers ? 'Loading users...' : 'Select user'}
+                                options={parentUsersList.map((user, index) => ({
+                                  value: user.user_id || user.id,
+                                  label: `${user.user_id || user.id} - ${user.full_name || user.name || user.email || 'N/A'}`
+                                }))}
+                                className="w-full"
+                                style={{ width: '100%' }}
+                              />
+                              {parentErrors.user_id && <p className="text-red-600 text-xs mt-1">{parentErrors.user_id}</p>}
+                              {!loadingParentUsers && parentForm.school_id && parentUsersList.length === 0 && (
+                                <p className="text-yellow-600 text-xs mt-1">No users available for this school.</p>
+                              )}
+                              {!loadingParentUsers && parentUsersList.length > 0 && (
+                                <p className="text-green-600 text-xs mt-1">Found {parentUsersList.length} user(s) for this school. Type to search.</p>
+                              )}
+                            </div>
+                          )}
+                          
                           <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-2">Full Name <span className="text-red-500">*</span></label>
                             <input
@@ -3396,7 +3116,7 @@ const Dashboard = () => {
                               name="full_name"
                               value={parentForm.full_name}
                               onChange={handleParentFormChange}
-                              className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                              className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                 parentErrors.full_name ? 'border-red-500' : 'border-gray-300'
                               }`}
                               placeholder="Enter full name"
@@ -3411,7 +3131,7 @@ const Dashboard = () => {
                                 name="phone"
                                 value={parentForm.phone}
                                 onChange={handleParentFormChange}
-                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                   parentErrors.phone ? 'border-red-500' : 'border-gray-300'
                                 }`}
                                 placeholder="Enter 10-digit phone number"
@@ -3426,7 +3146,7 @@ const Dashboard = () => {
                                 name="whatsapp_number"
                                 value={parentForm.whatsapp_number}
                                 onChange={handleParentFormChange}
-                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                   parentErrors.whatsapp_number ? 'border-red-500' : 'border-gray-300'
                                 }`}
                                 placeholder="Enter 10-digit WhatsApp number"
@@ -3442,7 +3162,7 @@ const Dashboard = () => {
                               name="email"
                               value={parentForm.email}
                               onChange={handleParentFormChange}
-                              className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                              className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                 parentErrors.email ? 'border-red-500' : 'border-gray-300'
                               }`}
                               placeholder="parent@example.com"
@@ -3457,7 +3177,7 @@ const Dashboard = () => {
                                 name="occupation"
                                 value={parentForm.occupation}
                                 onChange={handleParentFormChange}
-                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                   parentErrors.occupation ? 'border-red-500' : 'border-gray-300'
                                 }`}
                                 placeholder="Enter occupation"
@@ -3470,7 +3190,7 @@ const Dashboard = () => {
                                 name="annual_income_range"
                                 value={parentForm.annual_income_range}
                                 onChange={handleParentFormChange}
-                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                   parentErrors.annual_income_range ? 'border-red-500' : 'border-gray-300'
                                 }`}
                               >
@@ -3490,7 +3210,7 @@ const Dashboard = () => {
                               name="education_level"
                               value={parentForm.education_level}
                               onChange={handleParentFormChange}
-                              className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                              className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                 parentErrors.education_level ? 'border-red-500' : 'border-gray-300'
                               }`}
                             >
@@ -3510,7 +3230,7 @@ const Dashboard = () => {
                               name="address_line1"
                               value={parentForm.address_line1}
                               onChange={handleParentFormChange}
-                              className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                              className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                 parentErrors.address_line1 ? 'border-red-500' : 'border-gray-300'
                               }`}
                               placeholder="Enter address line 1"
@@ -3524,7 +3244,7 @@ const Dashboard = () => {
                               name="address_line2"
                               value={parentForm.address_line2}
                               onChange={handleParentFormChange}
-                              className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
+                              className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500"
                               placeholder="Enter address line 2 (optional)"
                             />
                           </div>
@@ -3536,7 +3256,7 @@ const Dashboard = () => {
                                 name="city"
                                 value={parentForm.city}
                                 onChange={handleParentFormChange}
-                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                   parentErrors.city ? 'border-red-500' : 'border-gray-300'
                                 }`}
                                 placeholder="Enter city"
@@ -3550,7 +3270,7 @@ const Dashboard = () => {
                                 name="state"
                                 value={parentForm.state}
                                 onChange={handleParentFormChange}
-                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                   parentErrors.state ? 'border-red-500' : 'border-gray-300'
                                 }`}
                                 placeholder="Enter state"
@@ -3564,7 +3284,7 @@ const Dashboard = () => {
                                 name="pincode"
                                 value={parentForm.pincode}
                                 onChange={handleParentFormChange}
-                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-orange-500 ${
+                                className={`w-full px-4 py-2 border-2 rounded-lg focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500 ${
                                   parentErrors.pincode ? 'border-red-500' : 'border-gray-300'
                                 }`}
                                 placeholder="Enter 6-digit pin code"
@@ -3576,7 +3296,7 @@ const Dashboard = () => {
                           <button
                             type="submit"
                             disabled={parentSubmitting}
-                            className={`w-full bg-gradient-to-r from-orange-500 to-red-600 text-white px-6 py-3 rounded-lg font-semibold hover:shadow-lg transition-all duration-200 ${
+                            className={`w-full bg-gradient-to-r from-slate-700 to-slate-900 text-white px-6 py-3 rounded-lg font-semibold hover:shadow-lg transition-all duration-200 ${
                               parentSubmitting ? 'opacity-50 cursor-not-allowed' : ''
                             }`}
                           >
@@ -3586,65 +3306,177 @@ const Dashboard = () => {
                       </div>
                     </div>
                   )}
+
+                  {/* Relationship Registration */}
+                  {registrationType === 'relationship' && (
+                    <RelationshipRegistration />
+                  )}
                 </div>
               )}
 
               {adminActiveTab === 'users' && (
-                <div className="p-6 bg-gray-50 rounded-md">
-                  <h3 className="text-lg font-semibold mb-2">User Management</h3>
-                  <p className="text-sm text-gray-600 mb-4">Manage teachers, students, parents, and staff accounts.</p>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="bg-white rounded-lg p-4 shadow-sm">
-                      <h4 className="font-semibold mb-2">👥 Manage Users</h4>
-                      <p className="text-sm text-gray-600">View, edit, and delete user accounts.</p>
+                <div className="space-y-4">
+                  {/* Header Section */}
+                  <div className="bg-gradient-to-r from-slate-700 to-slate-900 rounded-lg p-3 text-white shadow-md">
+                    <h3 className="text-lg font-bold mb-1">User Management</h3>
+                    <p className="text-xs text-slate-200">Manage teachers, students, parents, and staff accounts</p>
+                  </div>
+
+                  {/* Feature Cards */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    <div className="bg-white rounded-lg p-4 shadow-md border border-slate-200 hover:shadow-lg transition-shadow duration-200">
+                      <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center mb-2">
+                        <div className="w-4 h-4 bg-slate-600 rounded"></div>
+                      </div>
+                      <h4 className="text-base font-bold text-slate-800 mb-1">Manage Users</h4>
+                      <p className="text-xs text-gray-600 mb-2">View, edit, and delete user accounts across the system.</p>
+                      <button className="text-slate-700 font-semibold text-xs hover:text-slate-900 transition-colors">
+                        View Users →
+                      </button>
                     </div>
-                    <div className="bg-white rounded-lg p-4 shadow-sm">
-                      <h4 className="font-semibold mb-2">➕ Add New Users</h4>
-                      <p className="text-sm text-gray-600">Create new user accounts for teachers, students, and staff.</p>
+                    
+                    <div className="bg-white rounded-lg p-4 shadow-md border border-slate-200 hover:shadow-lg transition-shadow duration-200">
+                      <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center mb-2">
+                        <div className="w-4 h-4 bg-slate-600 rounded"></div>
+                      </div>
+                      <h4 className="text-base font-bold text-slate-800 mb-1">Add New Users</h4>
+                      <p className="text-xs text-gray-600 mb-2">Create new user accounts for teachers, students, and staff members.</p>
+                      <button className="text-slate-700 font-semibold text-xs hover:text-slate-900 transition-colors">
+                        Add User →
+                      </button>
+                    </div>
+
+                    <div className="bg-white rounded-lg p-4 shadow-md border border-slate-200 hover:shadow-lg transition-shadow duration-200">
+                      <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center mb-2">
+                        <div className="w-4 h-4 bg-slate-600 rounded"></div>
+                      </div>
+                      <h4 className="text-base font-bold text-slate-800 mb-1">User Roles</h4>
+                      <p className="text-xs text-gray-600 mb-2">Manage user roles and permissions for different access levels.</p>
+                      <button className="text-slate-700 font-semibold text-xs hover:text-slate-900 transition-colors">
+                        Manage Roles →
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Stats Section */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    <div className="bg-gradient-to-br from-slate-50 to-gray-50 rounded-lg p-3 border border-slate-200">
+                      <div className="text-xl font-bold text-slate-800">0</div>
+                      <div className="text-xs text-gray-600 mt-0.5">Total Users</div>
+                    </div>
+                    <div className="bg-gradient-to-br from-slate-50 to-gray-50 rounded-lg p-3 border border-slate-200">
+                      <div className="text-xl font-bold text-slate-800">0</div>
+                      <div className="text-xs text-gray-600 mt-0.5">Teachers</div>
+                    </div>
+                    <div className="bg-gradient-to-br from-slate-50 to-gray-50 rounded-lg p-3 border border-slate-200">
+                      <div className="text-xl font-bold text-slate-800">0</div>
+                      <div className="text-xs text-gray-600 mt-0.5">Students</div>
+                    </div>
+                    <div className="bg-gradient-to-br from-slate-50 to-gray-50 rounded-lg p-3 border border-slate-200">
+                      <div className="text-xl font-bold text-slate-800">0</div>
+                      <div className="text-xs text-gray-600 mt-0.5">Parents</div>
                     </div>
                   </div>
                 </div>
               )}
 
               {adminActiveTab === 'settings' && (
-                <div className="p-6 bg-gray-50 rounded-md">
-                  <h3 className="text-lg font-semibold mb-2">School Settings</h3>
-                  <p className="text-sm text-gray-600 mb-4">Configure school information and system settings.</p>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="bg-white rounded-lg p-4 shadow-sm">
-                      <h4 className="font-semibold mb-2">🏫 School Information</h4>
-                      <p className="text-sm text-gray-600">Update school name, address, and contact details.</p>
+                <div className="space-y-4">
+                  {/* Header Section */}
+                  <div className="bg-gradient-to-r from-slate-700 to-slate-900 rounded-lg p-3 text-white shadow-md">
+                    <h3 className="text-lg font-bold mb-1">School Settings</h3>
+                    <p className="text-xs text-slate-200">Configure school information and system settings</p>
+                  </div>
+
+                  {/* Settings Cards */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="bg-white rounded-lg p-4 shadow-md border border-slate-200 hover:shadow-lg transition-shadow duration-200">
+                      <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center mb-2">
+                        <div className="w-4 h-4 bg-slate-600 rounded"></div>
+                      </div>
+                      <h4 className="text-base font-bold text-slate-800 mb-1">School Information</h4>
+                      <p className="text-xs text-gray-600 mb-2">Update school name, address, and contact details.</p>
+                      <button className="text-slate-700 font-semibold text-xs hover:text-slate-900 transition-colors">
+                        Edit Settings →
+                      </button>
                     </div>
-                    <div className="bg-white rounded-lg p-4 shadow-sm">
-                      <h4 className="font-semibold mb-2">🔐 Security Settings</h4>
-                      <p className="text-sm text-gray-600">Manage security settings and access controls.</p>
+
+                    <div className="bg-white rounded-lg p-4 shadow-md border border-slate-200 hover:shadow-lg transition-shadow duration-200">
+                      <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center mb-2">
+                        <div className="w-4 h-4 bg-slate-600 rounded"></div>
+                      </div>
+                      <h4 className="text-base font-bold text-slate-800 mb-1">Security Settings</h4>
+                      <p className="text-xs text-gray-600 mb-2">Manage security settings and access controls.</p>
+                      <button className="text-slate-700 font-semibold text-xs hover:text-slate-900 transition-colors">
+                        Configure →
+                      </button>
+                    </div>
+
+                    <div className="bg-white rounded-lg p-4 shadow-md border border-slate-200 hover:shadow-lg transition-shadow duration-200">
+                      <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center mb-2">
+                        <div className="w-4 h-4 bg-slate-600 rounded"></div>
+                      </div>
+                      <h4 className="text-base font-bold text-slate-800 mb-1">System Reports</h4>
+                      <p className="text-xs text-gray-600 mb-2">Generate and view various system reports.</p>
+                      <button className="text-slate-700 font-semibold text-xs hover:text-slate-900 transition-colors">
+                        View Reports →
+                      </button>
+                    </div>
+
+                    <div className="bg-white rounded-lg p-4 shadow-md border border-slate-200 hover:shadow-lg transition-shadow duration-200">
+                      <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center mb-2">
+                        <div className="w-4 h-4 bg-slate-600 rounded"></div>
+                      </div>
+                      <h4 className="text-base font-bold text-slate-800 mb-1">Analytics</h4>
+                      <p className="text-xs text-gray-600 mb-2">Monitor system usage and performance metrics.</p>
+                      <button className="text-slate-700 font-semibold text-xs hover:text-slate-900 transition-colors">
+                        View Analytics →
+                      </button>
                     </div>
                   </div>
                 </div>
               )}
 
               {adminActiveTab === 'reports' && (
-                <div className="p-6">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Reports & Analytics</h3>
-                  <p className="text-gray-600 mb-6">View system reports, analytics, and upload report card data.</p>
+                <div className="space-y-4">
+                  {/* Header Section */}
+                  <div className="bg-gradient-to-r from-slate-700 to-slate-900 rounded-lg p-3 text-white shadow-md">
+                    <h3 className="text-lg font-bold mb-1">Reports & Analytics</h3>
+                    <p className="text-xs text-slate-200">View system reports, analytics, and upload report card data</p>
+                  </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                    <div className="bg-white rounded-lg p-4 shadow-sm">
-                      <h4 className="font-semibold mb-2">📊 System Reports</h4>
-                      <p className="text-sm text-gray-600">Generate and view various system reports.</p>
+                  {/* Feature Cards */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="bg-white rounded-lg p-4 shadow-md border border-slate-200 hover:shadow-lg transition-shadow duration-200">
+                      <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center mb-2">
+                        <div className="w-4 h-4 bg-slate-600 rounded"></div>
+                      </div>
+                      <h4 className="text-base font-bold text-slate-800 mb-1">System Reports</h4>
+                      <p className="text-xs text-gray-600 mb-2">Generate and view various system reports and statistics.</p>
+                      <button className="text-slate-700 font-semibold text-xs hover:text-slate-900 transition-colors">
+                        Generate Report →
+                      </button>
                     </div>
-                    <div className="bg-white rounded-lg p-4 shadow-sm">
-                      <h4 className="font-semibold mb-2">📈 Analytics</h4>
-                      <p className="text-sm text-gray-600">Monitor system usage and performance metrics.</p>
+                    
+                    <div className="bg-white rounded-lg p-4 shadow-md border border-slate-200 hover:shadow-lg transition-shadow duration-200">
+                      <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center mb-2">
+                        <div className="w-4 h-4 bg-slate-600 rounded"></div>
+                      </div>
+                      <h4 className="text-base font-bold text-slate-800 mb-1">Analytics</h4>
+                      <p className="text-xs text-gray-600 mb-2">Monitor system usage and performance metrics in real-time.</p>
+                      <button className="text-slate-700 font-semibold text-xs hover:text-slate-900 transition-colors">
+                        View Analytics →
+                      </button>
                     </div>
                   </div>
 
                   {/* Excel File Upload Section */}
-                  <div className="bg-gradient-to-br from-orange-50 to-red-50 rounded-lg border border-orange-200 p-6">
-                    <h4 className="text-xl font-bold text-gray-900 mb-4">Upload Report Cards (Excel File)</h4>
-                    <p className="text-sm text-gray-600 mb-4">Upload an Excel file containing student report card marks and results.</p>
-                    
-                    <div className="bg-white rounded-lg p-6 shadow-sm">
+                  <div className="bg-white rounded-lg shadow-md border border-slate-200 overflow-hidden">
+                    <div className="bg-gradient-to-r from-slate-700 to-slate-900 px-4 py-2">
+                      <h4 className="text-base font-bold text-white">Upload Report Cards</h4>
+                      <p className="text-xs text-slate-200 mt-0.5">Upload an Excel file containing student report card marks and results</p>
+                    </div>
+                    <div className="p-4">
                       <form onSubmit={async (e) => {
                         e.preventDefault()
                         
@@ -3728,7 +3560,7 @@ const Dashboard = () => {
                             <label className="block text-sm font-semibold text-gray-700 mb-2">
                               Excel File <span className="text-red-500">*</span>
                             </label>
-                            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-orange-500 transition-colors">
+                            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-slate-500 transition-colors">
                               <input
                                 type="file"
                                 id="reportExcelFile"
@@ -3746,7 +3578,7 @@ const Dashboard = () => {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                                   </svg>
                                   <p className="text-sm text-gray-600 mb-1">
-                                    <span className="text-orange-600 font-semibold">Click to upload</span> or drag and drop
+                                    <span className="text-slate-700 font-semibold">Click to upload</span> or drag and drop
                                   </p>
                                   <p className="text-xs text-gray-500">Excel or CSV file (.csv, .xlsx, .xls)</p>
                                   {reportUploadFile && (
@@ -3766,7 +3598,7 @@ const Dashboard = () => {
                           <button
                             type="submit"
                             disabled={reportUploading || !reportUploadFile}
-                            className="w-full bg-gradient-to-r from-orange-500 to-red-600 text-white px-6 py-3 rounded-lg font-semibold hover:shadow-lg transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
+                            className="w-full bg-gradient-to-r from-slate-700 to-slate-900 text-white px-6 py-3 rounded-lg font-semibold hover:shadow-lg transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
                           >
                             {reportUploading ? 'Uploading...' : 'Upload Excel File'}
                           </button>
@@ -3805,8 +3637,8 @@ const Dashboard = () => {
     <>
       {userType === 'teacher' && <TeacherDashboard user={user} handleLogout={handleLogout} />}
       {userType === 'parent' && <ParentDashboard user={user} handleLogout={handleLogout} />}
-      {userType === 'student' && <StudentDashboard />}
-      {userType === 'admin' && <AdminDashboard />}
+      {userType === 'student' && <StudentDashboard user={user} handleLogout={handleLogout} />}
+      {userType === 'admin' && <AdminDashboard user={user} handleLogout={handleLogout} />}
     </>
   )
 }

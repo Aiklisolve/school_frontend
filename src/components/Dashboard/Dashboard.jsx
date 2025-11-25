@@ -212,6 +212,94 @@ const Dashboard = () => {
     const [reportUploading, setReportUploading] = useState(false)
     const [reportUploadError, setReportUploadError] = useState('')
     
+    // Statistics counts state
+    const [stats, setStats] = useState({
+      schools: 0,
+      branches: 0,
+      users: 0,
+      students: 0,
+      parents: 0
+    })
+    const [loadingStats, setLoadingStats] = useState(true)
+    
+    // Fetch statistics counts
+    const fetchStatistics = async () => {
+      setLoadingStats(true)
+      const token = localStorage.getItem('token')
+      
+      try {
+        // Fetch all counts in parallel
+        const [schoolsRes, branchesRes, usersRes, studentsRes, parentsRes] = await Promise.allSettled([
+          axios.get(`${API_BASE_URL}/schools`, {
+            headers: { 
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            params: { page: 1, limit: 10000 }
+          }),
+          axios.get(`${API_BASE_URL}/branches`, {
+            headers: { 
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            params: { page: 1, limit: 10000 }
+          }),
+          axios.get(`${API_BASE_URL}/users`, {
+            headers: { 
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            params: { page: 1, limit: 10000 }
+          }),
+          axios.get(`${API_BASE_URL}/students`, {
+            headers: { 
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            params: { page: 1, limit: 10000 }
+          }),
+          axios.get(`${API_BASE_URL}/parents`, {
+            headers: { 
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            params: { page: 1, limit: 10000 }
+          })
+        ])
+        
+        // Extract counts from responses
+        const getCount = (result) => {
+          if (result.status === 'fulfilled') {
+            const data = result.value.data
+            if (Array.isArray(data)) return data.length
+            if (data?.data && Array.isArray(data.data)) return data.data.length
+            if (data?.count !== undefined) return data.count
+            if (data?.total !== undefined) return data.total
+            return 0
+          }
+          return 0
+        }
+        
+        setStats({
+          schools: getCount(schoolsRes),
+          branches: getCount(branchesRes),
+          users: getCount(usersRes),
+          students: getCount(studentsRes),
+          parents: getCount(parentsRes)
+        })
+      } catch (error) {
+        console.error('Error fetching statistics:', error)
+      } finally {
+        setLoadingStats(false)
+      }
+    }
+    
+    // Fetch statistics on component mount
+    useEffect(() => {
+      fetchStatistics()
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
+    
     // School Registration State
     const [schoolForm, setSchoolForm] = useState({
       school_code: '',
@@ -1802,6 +1890,104 @@ const Dashboard = () => {
                 <h2 className="text-2xl font-bold mb-1">Admin Dashboard</h2>
                 <p className="text-sm text-slate-200">Manage your school system, users, and administrative tasks</p>
               </div>
+            </div>
+          </div>
+
+          {/* Statistics Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+            {/* Schools Card */}
+            <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+              <div className="flex items-center justify-between mb-4">
+                <div className="bg-white/20 rounded-lg p-3">
+                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                </div>
+              </div>
+              <h3 className="text-white text-sm font-semibold mb-1">Schools</h3>
+              <p className="text-white text-3xl font-bold">
+                {loadingStats ? (
+                  <span className="text-white/70">...</span>
+                ) : (
+                  stats.schools.toLocaleString()
+                )}
+              </p>
+            </div>
+
+            {/* Branches Card */}
+            <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+              <div className="flex items-center justify-between mb-4">
+                <div className="bg-white/20 rounded-lg p-3">
+                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                </div>
+              </div>
+              <h3 className="text-white text-sm font-semibold mb-1">Branches</h3>
+              <p className="text-white text-3xl font-bold">
+                {loadingStats ? (
+                  <span className="text-white/70">...</span>
+                ) : (
+                  stats.branches.toLocaleString()
+                )}
+              </p>
+            </div>
+
+            {/* Users Card */}
+            <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+              <div className="flex items-center justify-between mb-4">
+                <div className="bg-white/20 rounded-lg p-3">
+                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                </div>
+              </div>
+              <h3 className="text-white text-sm font-semibold mb-1">Users</h3>
+              <p className="text-white text-3xl font-bold">
+                {loadingStats ? (
+                  <span className="text-white/70">...</span>
+                ) : (
+                  stats.users.toLocaleString()
+                )}
+              </p>
+            </div>
+
+            {/* Students Card */}
+            <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+              <div className="flex items-center justify-between mb-4">
+                <div className="bg-white/20 rounded-lg p-3">
+                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                </div>
+              </div>
+              <h3 className="text-white text-sm font-semibold mb-1">Students</h3>
+              <p className="text-white text-3xl font-bold">
+                {loadingStats ? (
+                  <span className="text-white/70">...</span>
+                ) : (
+                  stats.students.toLocaleString()
+                )}
+              </p>
+            </div>
+
+            {/* Parents Card */}
+            <div className="bg-gradient-to-br from-pink-500 to-pink-600 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+              <div className="flex items-center justify-between mb-4">
+                <div className="bg-white/20 rounded-lg p-3">
+                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                </div>
+              </div>
+              <h3 className="text-white text-sm font-semibold mb-1">Parents</h3>
+              <p className="text-white text-3xl font-bold">
+                {loadingStats ? (
+                  <span className="text-white/70">...</span>
+                ) : (
+                  stats.parents.toLocaleString()
+                )}
+              </p>
             </div>
           </div>
 

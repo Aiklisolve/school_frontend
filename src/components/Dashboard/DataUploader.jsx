@@ -311,11 +311,12 @@ const DataUploader = () => {
     try {
       const token = localStorage.getItem('token')
       const formData = new FormData()
-      formData.append('file', attendanceFile)
+      formData.append('csvFile', attendanceFile)
       
       const response = await axios.post(`${API_BASE_URL}/attendance/upload`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
+          'Accept': 'application/json',
           'Authorization': `Bearer ${token}`
         }
       })

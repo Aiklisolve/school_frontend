@@ -33,13 +33,14 @@ const BranchRegistration = () => {
   const [branchSubmitting, setBranchSubmitting] = useState(false)
   const [branchSchoolsList, setBranchSchoolsList] = useState([])
   const [loadingBranchSchools, setLoadingBranchSchools] = useState(false)
+  const token = localStorage.getItem('token')
   
   // Fetch all schools for branch registration (no pagination)
   const fetchBranchSchools = async () => {
     setLoadingBranchSchools(true)
     try {
       const response = await axios.get(`${API_BASE_URL}/schools`, {
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         params: {
           page: 1,
           limit: 10000 // Fetch all schools
@@ -160,7 +161,6 @@ const BranchRegistration = () => {
       }))
     }
   }
-  
   // Handle Branch Form Submit
   const handleBranchSubmit = async (e) => {
     e.preventDefault()
@@ -172,6 +172,7 @@ const BranchRegistration = () => {
     setBranchSubmitting(true)
     
     try {
+      const token = localStorage.getItem('token')
       const payload = {
         school_id: parseInt(branchForm.school_id),
         branch_code: branchForm.branch_code.trim(),
@@ -186,7 +187,10 @@ const BranchRegistration = () => {
       }
       
       const response = await axios.post(`${API_BASE_URL}/branches`, payload, {
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
       })
       
       const Swal = await loadSwal()

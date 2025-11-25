@@ -8,6 +8,7 @@ import ParentDashboard from './ParentDashboard'
 import StudentDashboard from './StudentDashboard'
 import RelationshipRegistration from '../Registration/RelationshipRegistration'
 import SearchableSelect from '../Registration/SearchableSelect'
+import DataUploader from './DataUploader'
 
 const API_BASE_URL = 'http://localhost:8080/api'
 
@@ -363,8 +364,12 @@ const Dashboard = () => {
           rte_compliance: schoolForm.rte_compliance
         }
         
+        const token = localStorage.getItem('token')
         const response = await axios.post(`${API_BASE_URL}/schools/register`, payload, {
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
         })
         
         // Show SweetAlert2 success message
@@ -577,9 +582,10 @@ const Dashboard = () => {
           is_main_branch: branchForm.is_main_branch,
           max_students: branchForm.max_students ? parseInt(branchForm.max_students) : null
         }
+  const token = localStorage.getItem('token')
         
         const response = await axios.post(`${API_BASE_URL}/branches`, payload, {
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
         })
         
         const Swal = await loadSwal()
@@ -948,8 +954,12 @@ const Dashboard = () => {
           pincode: userForm.pincode
         }
         
+        const token = localStorage.getItem('token')
         const response = await axios.post(`${API_BASE_URL}/users/register`, payload, {
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
         })
         
         // Show SweetAlert2 success message
@@ -1126,8 +1136,12 @@ const Dashboard = () => {
       
       setLoadingStudentUsers(true)
       try {
-        const response = await axios.get(`${API_BASE_URL}/users/school/${schoolId}`, {
-          headers: { 'Content-Type': 'application/json' }
+        const token = localStorage.getItem('token')
+        const response = await axios.get(`${API_BASE_URL}/users/school/${schoolId}/STUDENT`, {
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
         })
         
         let users = []
@@ -1277,8 +1291,12 @@ const Dashboard = () => {
       
       setLoadingParentUsers(true)
       try {
-        const response = await axios.get(`${API_BASE_URL}/users/school/${schoolId}`, {
-          headers: { 'Content-Type': 'application/json' }
+        const token = localStorage.getItem('token')
+        const response = await axios.get(`${API_BASE_URL}/users/school/${schoolId}/PARENT`, {
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
         })
         
         let users = []
@@ -1342,6 +1360,10 @@ const Dashboard = () => {
       
       if (!parentForm.school_id) {
         errors.school_id = 'School ID is required'
+      }
+      
+      if (!parentForm.user_id) {
+        errors.user_id = 'User ID is required'
       }
       
       if (!parentForm.full_name.trim()) {
@@ -1445,6 +1467,7 @@ const Dashboard = () => {
       try {
         const payload = {
           school_id: parseInt(parentForm.school_id),
+          user_id: parentForm.user_id ? String(parentForm.user_id) : undefined,
           full_name: parentForm.full_name,
           phone: parentForm.phone,
           whatsapp_number: parentForm.whatsapp_number,
@@ -1459,8 +1482,12 @@ const Dashboard = () => {
           pincode: parentForm.pincode
         }
         
+        const token = localStorage.getItem('token')
         const response = await axios.post(`${API_BASE_URL}/parents/register`, payload, {
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
         })
         
         // Show SweetAlert2 success message
@@ -1517,6 +1544,10 @@ const Dashboard = () => {
       
       if (!studentForm.school_id) {
         errors.school_id = 'School ID is required'
+      }
+      
+      if (!studentForm.user_id) {
+        errors.user_id = 'User ID is required'
       }
       
       if (!studentForm.branch_id) {
@@ -1654,6 +1685,7 @@ const Dashboard = () => {
       try {
         const payload = {
           school_id: parseInt(studentForm.school_id),
+          user_id: studentForm.user_id ? String(studentForm.user_id) : undefined,
           branch_id: parseInt(studentForm.branch_id),
           admission_number: studentForm.admission_number,
           roll_number: studentForm.roll_number,
@@ -1675,8 +1707,12 @@ const Dashboard = () => {
           student_photo_url: studentForm.student_photo_url || ''
         }
         
+        const token = localStorage.getItem('token')
         const response = await axios.post(`${API_BASE_URL}/students/register`, payload, {
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
         })
         
         // Show SweetAlert2 success message
@@ -1772,19 +1808,28 @@ const Dashboard = () => {
           {/* Admin Tabs */}
           <div className="bg-white rounded-xl shadow-lg p-4 mb-4">
             <div className="flex gap-2 border-b border-slate-200 pb-2 mb-4 overflow-x-auto">
-              {['registration', 'users', 'settings', 'reports'].map(tab => (
-                <button
-                  key={tab}
-                  onClick={() => setAdminActiveTab(tab)}
-                  className={`px-4 py-2 rounded-t-md text-sm font-semibold transition-all duration-200 ${
-                    adminActiveTab === tab 
-                      ? 'bg-slate-800 text-white border-b-2 border-slate-800' 
-                      : 'text-gray-500 hover:text-slate-700 hover:bg-slate-50'
-                  }`}
-                >
-                  {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                </button>
-              ))}
+              {['registration', 'users', 'settings', 'reports', 'dataupload'].map(tab => {
+                const tabLabels = {
+                  'registration': 'Registration',
+                  'users': 'Users',
+                  'settings': 'Settings',
+                  'reports': 'Reports',
+                  'dataupload': 'Data Upload'
+                }
+                return (
+                  <button
+                    key={tab}
+                    onClick={() => setAdminActiveTab(tab)}
+                    className={`px-4 py-2 rounded-t-md text-sm font-semibold transition-all duration-200 ${
+                      adminActiveTab === tab 
+                        ? 'bg-slate-800 text-white border-b-2 border-slate-800' 
+                        : 'text-gray-500 hover:text-slate-700 hover:bg-slate-50'
+                    }`}
+                  >
+                    {tabLabels[tab] || tab.charAt(0).toUpperCase() + tab.slice(1)}
+                  </button>
+                )
+              })}
             </div>
 
                 <div className="mt-2">
@@ -2721,7 +2766,7 @@ const Dashboard = () => {
                                 placeholder={loadingStudentUsers ? 'Loading users...' : 'Select user'}
                                 options={studentUsersList.map((user, index) => ({
                                   value: user.user_id || user.id,
-                                  label: `${user.user_id || user.id} - ${user.full_name || user.name || user.email || 'N/A'}`
+                                  label: `${user.user_id || user.id} - ${user.full_name || 'N/A'}`
                                 }))}
                                 className="w-full"
                                 style={{ width: '100%' }}
@@ -3094,7 +3139,7 @@ const Dashboard = () => {
                                 placeholder={loadingParentUsers ? 'Loading users...' : 'Select user'}
                                 options={parentUsersList.map((user, index) => ({
                                   value: user.user_id || user.id,
-                                  label: `${user.user_id || user.id} - ${user.full_name || user.name || user.email || 'N/A'}`
+                                  label: `${user.user_id || user.id} - ${user.full_name || 'N/A'}`
                                 }))}
                                 className="w-full"
                                 style={{ width: '100%' }}
@@ -3434,6 +3479,12 @@ const Dashboard = () => {
                       </button>
                     </div>
                   </div>
+                </div>
+              )}
+
+              {adminActiveTab === 'dataupload' && (
+                <div className="space-y-4">
+                  <DataUploader />
                 </div>
               )}
 

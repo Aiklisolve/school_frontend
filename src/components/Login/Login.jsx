@@ -12,7 +12,7 @@ const Login = () => {
     password: '',
     mobile: '',
     otp: '',
-    userType: 'teacher'
+    userType: 'admin'
   })
   const [errors, setErrors] = useState({})
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -31,7 +31,7 @@ const Login = () => {
     oldPassword: '',
     newPassword: '',
     confirmPassword: '',
-    userType: 'teacher'
+    userType: 'admin'
   })
   const [changePasswordOtp, setChangePasswordOtp] = useState(null)
   const [changePasswordToken, setChangePasswordToken] = useState(null)
@@ -53,11 +53,12 @@ const Login = () => {
   }, [isAuthenticated, navigate])
 
   const userTypes = [
+    { value: 'admin', label: 'admin' },
+
     { value: 'teacher', label: 'teacher' },
     { value: 'parent', label: 'parent' },
-    { value: 'student', label: 'student' },
+    { value: 'student', label: 'student' }
     // { value: 'staff', label: 'School Staff' },
-    { value: 'admin', label: 'admin' }
   ]
 
   const validateStep1 = () => {

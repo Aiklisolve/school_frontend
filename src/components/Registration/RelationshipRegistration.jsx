@@ -277,8 +277,14 @@ const RelationshipRegistration = () => {
       
       console.log('Relationship Registration - Payload being sent:', JSON.stringify(payload, null, 2))
       
+      // Get JWT token from localStorage
+      const token = localStorage.getItem('token')
+      
       const response = await axios.post(`${API_BASE_URL}/relationships`, payload, {
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
       })
       
       const Swal = await loadSwal()
@@ -371,7 +377,7 @@ const RelationshipRegistration = () => {
                 placeholder={!relationshipForm.school_id ? 'Please select a school first' : loadingParents ? 'Loading parents...' : 'Select parent'}
                 options={parentsList.map(parent => ({
                   value: parent.parent_id,
-                  label: String(parent.parent_id)
+                  label: String(parent.parent_id) + " - " + parent.full_name || parent.parent_name || 'N/A'
                 }))}
                 className="w-full"
                 style={{ width: '100%' }}
@@ -417,7 +423,7 @@ const RelationshipRegistration = () => {
                 }))}
                 className="w-full"
                 style={{ width: '100%' }}
-              />
+              />  
               {relationshipErrors.student_id && <p className="text-red-600 text-xs mt-1">{relationshipErrors.student_id}</p>}
               {!loadingStudents && relationshipForm.school_id && studentsList.length === 0 && (
                 <p className="text-yellow-600 text-xs mt-1">No students available for this school.</p>

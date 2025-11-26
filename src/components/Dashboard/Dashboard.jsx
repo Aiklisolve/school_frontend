@@ -268,24 +268,73 @@ const Dashboard = () => {
         ])
         
         // Extract counts from responses
-        const getCount = (result) => {
+        const getCount = (result, type = '') => {
           if (result.status === 'fulfilled') {
-            const data = result.value.data
-            if (Array.isArray(data)) return data.length
-            if (data?.data && Array.isArray(data.data)) return data.data.length
-            if (data?.count !== undefined) return data.count
-            if (data?.total !== undefined) return data.total
+            const response = result.value
+            const data = response.data
+            
+            // Log for debugging
+            if (type === 'users') {
+              console.log('Users API Response:', data)
+            }
+            
+            // Handle different response structures
+            if (Array.isArray(data)) {
+              return data.length
+            }
+            
+            // Check for nested data arrays
+            if (data?.data && Array.isArray(data.data)) {
+              return data.data.length
+            }
+            
+            // Check for type-specific arrays (users, students, parents, etc.)
+            if (data?.users && Array.isArray(data.users)) {
+              return data.users.length
+            }
+            if (data?.students && Array.isArray(data.students)) {
+              return data.students.length
+            }
+            if (data?.parents && Array.isArray(data.parents)) {
+              return data.parents.length
+            }
+            if (data?.schools && Array.isArray(data.schools)) {
+              return data.schools.length
+            }
+            if (data?.branches && Array.isArray(data.branches)) {
+              return data.branches.length
+            }
+            
+            // Check for count/total properties
+            if (data?.count !== undefined) {
+              return typeof data.count === 'number' ? data.count : parseInt(data.count) || 0
+            }
+            if (data?.total !== undefined) {
+              return typeof data.total === 'number' ? data.total : parseInt(data.total) || 0
+            }
+            
+            // If it's an object but not an array, try to find any array property
+            if (data && typeof data === 'object' && !Array.isArray(data)) {
+              const arrayKeys = Object.keys(data).filter(key => Array.isArray(data[key]))
+              if (arrayKeys.length > 0) {
+                return data[arrayKeys[0]].length
+              }
+            }
+            
+            return 0
+          } else if (result.status === 'rejected') {
+            console.error(`Error fetching ${type}:`, result.reason)
             return 0
           }
           return 0
         }
         
         setStats({
-          schools: getCount(schoolsRes),
-          branches: getCount(branchesRes),
-          users: getCount(usersRes),
-          students: getCount(studentsRes),
-          parents: getCount(parentsRes)
+          schools: getCount(schoolsRes, 'schools'),
+          branches: getCount(branchesRes, 'branches'),
+          users: getCount(usersRes, 'users'),
+          students: getCount(studentsRes, 'students'),
+          parents: getCount(parentsRes, 'parents')
         })
       } catch (error) {
         console.error('Error fetching statistics:', error)

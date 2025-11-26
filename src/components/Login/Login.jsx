@@ -18,7 +18,7 @@ const Login = () => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showSuccessPopup, setShowSuccessPopup] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
-  
+
   // Forget Password State
   const [showForgetPassword, setShowForgetPassword] = useState(false)
   const [forgetPasswordOption, setForgetPasswordOption] = useState(null) // 'change' or 'mobile'
@@ -675,41 +675,41 @@ const Login = () => {
                 </label>
                 <div className="relative">
                   <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 font-semibold">+91</div>
-                  <input
-                    type="tel"
-                    id="mobile"
-                    name="mobile"
-                    value={formData.mobile}
-                    onChange={handleChange}
-                    onPaste={handleMobilePaste}
-                    onKeyDown={(e) => {
-                      // Allow: backspace, delete, tab, escape, enter, and arrow keys
-                      if ([8, 9, 27, 13, 46, 37, 38, 39, 40].includes(e.keyCode) ||
-                          // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
-                          (e.keyCode === 65 && e.ctrlKey === true) ||
-                          (e.keyCode === 67 && e.ctrlKey === true) ||
-                          (e.keyCode === 86 && e.ctrlKey === true) ||
-                          (e.keyCode === 88 && e.ctrlKey === true)) {
-                        return
-                      }
-                      // Ensure that it is a number and stop the keypress if not
-                      if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
-                        e.preventDefault()
-                      }
-                      // Prevent typing if already 10 digits (unless it's a deletion key)
-                      if (formData.mobile.length >= 10 && ![8, 46].includes(e.keyCode)) {
-                        e.preventDefault()
-                      }
-                    }}
+                <input
+                  type="tel"
+                  id="mobile"
+                  name="mobile"
+                  value={formData.mobile}
+                  onChange={handleChange}
+                  onPaste={handleMobilePaste}
+                  onKeyDown={(e) => {
+                    // Allow: backspace, delete, tab, escape, enter, and arrow keys
+                    if ([8, 9, 27, 13, 46, 37, 38, 39, 40].includes(e.keyCode) ||
+                        // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
+                        (e.keyCode === 65 && e.ctrlKey === true) ||
+                        (e.keyCode === 67 && e.ctrlKey === true) ||
+                        (e.keyCode === 86 && e.ctrlKey === true) ||
+                        (e.keyCode === 88 && e.ctrlKey === true)) {
+                      return
+                    }
+                    // Ensure that it is a number and stop the keypress if not
+                    if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
+                      e.preventDefault()
+                    }
+                    // Prevent typing if already 10 digits (unless it's a deletion key)
+                    if (formData.mobile.length >= 10 && ![8, 46].includes(e.keyCode)) {
+                      e.preventDefault()
+                    }
+                  }}
                     className={`w-full pl-14 pr-4 py-3.5 border-2 rounded-xl text-base transition-all duration-200 bg-white text-gray-900 font-medium focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed hover:border-blue-300 ${
                       errors.mobile ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'border-gray-300'
-                    }`}
+                  }`}
                     placeholder="10-digit mobile number"
-                    maxLength="10"
-                    inputMode="numeric"
-                    pattern="[0-9]{10}"
-                    disabled={step === 2}
-                  />
+                  maxLength="10"
+                  inputMode="numeric"
+                  pattern="[0-9]{10}"
+                  disabled={step === 2}
+                />
                 </div>
                 {errors.mobile && <span className="text-red-600 text-sm font-medium -mt-1">
                   {errors.mobile}
@@ -1089,7 +1089,7 @@ const Login = () => {
                     className="flex-1 px-6 py-3.5 border-2 border-gray-300 text-gray-700 rounded-xl text-base font-bold cursor-pointer transition-all duration-200 hover:bg-gray-50"
                   >
                     Back
-                  </button>
+          </button>
                   <button
                     type="submit"
                     className="flex-1 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white border-none px-6 py-4 rounded-xl text-base font-bold cursor-pointer transition-all duration-200 hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none flex items-center justify-center gap-2"
@@ -1108,7 +1108,7 @@ const Login = () => {
                     )}
                   </button>
                 </div>
-              </form>
+        </form>
             ) : forgetPasswordOption === 'mobile' ? (
               !viaMobileOtp ? (
                 <form onSubmit={handleViaMobileSendOtp} className="flex flex-col gap-6">
@@ -1117,7 +1117,7 @@ const Login = () => {
                       Reset Password Via Mobile
                     </h2>
                     <p className="text-gray-600 text-sm m-0 font-medium">Enter your mobile number to receive OTP</p>
-                  </div>
+      </div>
 
                   <div className="flex flex-col gap-3">
                     <label className="text-gray-700 text-sm font-bold">Mobile Number</label>

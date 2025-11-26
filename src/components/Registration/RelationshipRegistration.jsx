@@ -330,12 +330,12 @@ const RelationshipRegistration = () => {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-md border border-slate-200 overflow-hidden">
-      <div className="bg-gradient-to-r from-slate-700 to-slate-900 px-4 py-2">
-        <h4 className="text-base font-bold text-white">Relationship Registration</h4>
-        <p className="text-xs text-slate-200 mt-0.5">Create a relationship between a parent and a student</p>
+    <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
+      <div className="bg-indigo-600 px-6 py-4 border-b border-indigo-700">
+        <h4 className="text-lg font-semibold text-white">Relationship Registration</h4>
+        <p className="text-sm text-indigo-100 mt-1">Create a relationship between a parent and a student</p>
       </div>
-      <div className="p-4">
+      <div className="p-6">
         <form onSubmit={handleRelationshipSubmit} className="space-y-4">
           {/* School Selection */}
           <div style={{ width: '100%' }}>
@@ -516,7 +516,7 @@ const RelationshipRegistration = () => {
           <button
             type="submit"
             disabled={relationshipSubmitting}
-            className={`w-full bg-gradient-to-r from-slate-700 to-slate-900 text-white px-6 py-3 rounded-lg font-semibold hover:shadow-lg transition-all duration-200 ${
+            className={`w-full bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors duration-200 ${
               relationshipSubmitting ? 'opacity-60 cursor-not-allowed' : ''
             }`}
           >

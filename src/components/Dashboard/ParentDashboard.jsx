@@ -325,7 +325,7 @@ const ParentDashboard = ({ user, handleLogout }) => {
               <span className="text-4xl">👨‍👩‍👧‍👦</span>
             </div>
             <div>
-              <h1 className="m-0 text-white text-3xl font-bold">Welcome, {user?.name || user?.email}!</h1>
+              <h1 className="m-0 text-white text-3xl font-bold">Welcome, {user?.full_name || user?.name || user?.email}!</h1>
               <p className="inline-block bg-white/20 backdrop-blur-sm text-white px-4 py-1.5 rounded-full text-sm font-semibold mt-2">
                 PARENT
               </p>

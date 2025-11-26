@@ -484,21 +484,22 @@ const DataUploader = () => {
     error, 
     uploading, 
     onSubmit,
-    accept = ".csv,.xlsx,.xls"
+    accept = ".csv,.xlsx,.xls",
+    gradient
   }) => (
-    <div className="bg-white rounded-lg shadow-md border border-slate-200 overflow-hidden">
-      <div className="bg-gradient-to-r from-slate-700 to-slate-900 px-4 py-2">
-        <h4 className="text-base font-bold text-white">{title}</h4>
-        <p className="text-xs text-slate-200 mt-0.5">{description}</p>
+    <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
+      <div className={`bg-gradient-to-r ${gradient} px-6 py-4 border-b border-gray-200`}>
+        <h4 className="text-lg font-semibold text-white">{title}</h4>
+        <p className="text-sm text-white/90 mt-1">{description}</p>
       </div>
-      <div className="p-4">
+      <div className="p-6">
         <form onSubmit={onSubmit}>
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 File <span className="text-red-500">*</span>
               </label>
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-slate-500 transition-colors">
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors cursor-pointer">
                 <input
                   type="file"
                   id={id}
@@ -520,7 +521,7 @@ const DataUploader = () => {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                     </svg>
                     <p className="text-sm text-gray-600 mb-1">
-                      <span className="text-slate-700 font-semibold">Click to upload</span> or drag and drop
+                      <span className="text-gray-900 font-semibold">Click to upload</span> or drag and drop
                     </p>
                     <p className="text-xs text-gray-500">
                       {accept === ".csv,.xlsx,.xls" ? "Excel or CSV file (.csv, .xlsx, .xls)" : "File (.pdf, .doc, .docx, .csv, .xlsx, .xls)"}
@@ -541,7 +542,7 @@ const DataUploader = () => {
             <button
               type="submit"
               disabled={uploading || !file}
-              className="w-full bg-gradient-to-r from-slate-700 to-slate-900 text-white px-6 py-3 rounded-lg font-semibold hover:shadow-lg transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
+              className={`w-full bg-gradient-to-r ${gradient} text-white px-6 py-3 rounded-lg font-semibold hover:shadow-md transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed`}
             >
               {uploading ? 'Uploading...' : `Upload ${title}`}
             </button>
@@ -554,9 +555,9 @@ const DataUploader = () => {
   return (
     <div className="space-y-4">
       {/* Header Section */}
-      <div className="bg-gradient-to-r from-slate-700 to-slate-900 rounded-lg p-3 text-white shadow-md">
+      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg p-4 text-white shadow-md">
         <h3 className="text-lg font-bold mb-1">Data Uploader</h3>
-        <p className="text-xs text-slate-200">Upload Excel files for bulk data import (School, User, Attendance, Schedule, Question Papers)</p>
+        <p className="text-sm text-blue-100">Upload Excel files for bulk data import (School, User, Attendance, Schedule, Question Papers)</p>
       </div>
 
       {/* Upload Sections Grid */}
@@ -571,6 +572,7 @@ const DataUploader = () => {
           error={schoolError}
           uploading={uploadingSchool}
           onSubmit={handleSchoolUpload}
+          gradient="from-blue-500 to-blue-600"
         />
 
         {/* User Data Upload */}
@@ -583,6 +585,7 @@ const DataUploader = () => {
           error={userError}
           uploading={uploadingUser}
           onSubmit={handleUserUpload}
+          gradient="from-green-500 to-green-600"
         />
 
         {/* Attendance Data Upload */}
@@ -595,6 +598,7 @@ const DataUploader = () => {
           error={attendanceError}
           uploading={uploadingAttendance}
           onSubmit={handleAttendanceUpload}
+          gradient="from-purple-500 to-purple-600"
         />
 
         {/* Schedule Data Upload */}
@@ -607,6 +611,7 @@ const DataUploader = () => {
           error={scheduleError}
           uploading={uploadingSchedule}
           onSubmit={handleScheduleUpload}
+          gradient="from-orange-500 to-orange-600"
         />
 
         {/* Question Paper Upload */}
@@ -620,6 +625,7 @@ const DataUploader = () => {
           uploading={uploadingQuestionPaper}
           onSubmit={handleQuestionPaperUpload}
           accept=".pdf,.doc,.docx,.csv,.xlsx,.xls"
+          gradient="from-violet-500 to-violet-600"
         />
       </div>
     </div>

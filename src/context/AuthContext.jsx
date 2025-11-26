@@ -166,19 +166,25 @@ export const AuthProvider = ({ children }) => {
             // Validate session with backend
             validateSession(sessionIdToValidate, storedToken).then(async (validationResult) => {
               if (validationResult.valid) {
-                // Session is valid, fetch latest user details
+                // Session is valid, fetch latest user details (dynamic based on logged-in user)
                 const userId = parsedUser.id
                 if (userId) {
                   try {
                     const userDetailsResponse = await axios.get(`${API_BASE_URL}/users/${userId}`, {
                       headers: {
+                        'Accept': 'application/json, text/plain, */*',
+                        'Accept-Language': 'en-US,en;q=0.9',
                         'Authorization': `Bearer ${storedToken}`,
-                        'Content-Type': 'application/json'
+                        'Cache-Control': 'no-cache',
+                        'Connection': 'keep-alive',
+                        'Content-Type': 'application/json',
+                        'Pragma': 'no-cache'
                       }
                     })
                     
                     // Merge fetched user details with stored user data
-                    const fetchedUserDetails = userDetailsResponse.data?.data || userDetailsResponse.data || {}
+                    // Handle response structure: {status: "success", user: {...}} or {data: {...}}
+                    const fetchedUserDetails = userDetailsResponse.data?.user || userDetailsResponse.data?.data || userDetailsResponse.data || {}
                     const completeUserData = {
                       ...parsedUser,
                       ...fetchedUserDetails,
@@ -186,6 +192,8 @@ export const AuthProvider = ({ children }) => {
                       id: userId,
                       session_id: sessionIdToValidate,
                       email: parsedUser.email || fetchedUserDetails.email,
+                      full_name: fetchedUserDetails.full_name || parsedUser.full_name,
+                      name: fetchedUserDetails.full_name || fetchedUserDetails.name || parsedUser.name || parsedUser.full_name,
                       userType: parsedUser.userType || fetchedUserDetails.user_type || fetchedUserDetails.role
                     }
                     
@@ -475,19 +483,25 @@ export const AuthProvider = ({ children }) => {
         }
       }
       
-      // Fetch user details from API using user ID
+      // Fetch user details from API using user ID (dynamic based on logged-in user)
       const userId = finalUserData.id
       if (userId) {
         try {
           const userDetailsResponse = await axios.get(`${API_BASE_URL}/users/${userId}`, {
             headers: {
+              'Accept': 'application/json, text/plain, */*',
+              'Accept-Language': 'en-US,en;q=0.9',
               'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
+              'Cache-Control': 'no-cache',
+              'Connection': 'keep-alive',
+              'Content-Type': 'application/json',
+              'Pragma': 'no-cache'
             }
           })
           
           // Merge fetched user details with existing user data
-          const fetchedUserDetails = userDetailsResponse.data?.data || userDetailsResponse.data || {}
+          // Handle response structure: {status: "success", user: {...}} or {data: {...}}
+          const fetchedUserDetails = userDetailsResponse.data?.user || userDetailsResponse.data?.data || userDetailsResponse.data || {}
           const completeUserData = {
             ...finalUserData,
             ...fetchedUserDetails,
@@ -497,6 +511,8 @@ export const AuthProvider = ({ children }) => {
             is_active: isActive,
             expires_at: expiresAt,
             email: finalUserData.email || fetchedUserDetails.email,
+            full_name: fetchedUserDetails.full_name || finalUserData.full_name,
+            name: fetchedUserDetails.full_name || fetchedUserDetails.name || finalUserData.name || finalUserData.full_name,
             userType: finalUserData.userType || fetchedUserDetails.user_type || fetchedUserDetails.role
           }
           

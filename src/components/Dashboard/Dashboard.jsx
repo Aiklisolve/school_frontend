@@ -216,6 +216,7 @@ const Dashboard = () => {
     const [reportUploadFile, setReportUploadFile] = useState(null)
     const [reportUploading, setReportUploading] = useState(false)
     const [reportUploadError, setReportUploadError] = useState('')
+    const [sidebarOpen, setSidebarOpen] = useState(true)
     
     // Statistics counts state
     const [stats, setStats] = useState({
@@ -366,39 +367,157 @@ const Dashboard = () => {
       })
     }
     
+    const adminTabs = [
+      { id: 'registration', label: 'Registration', gradient: 'from-indigo-500 to-indigo-600', icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
+      { id: 'users', label: 'User Management', gradient: 'from-green-500 to-green-600', icon: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z' },
+      { id: 'settings', label: 'Settings', gradient: 'from-purple-500 to-purple-600', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z' },
+      { id: 'reports', label: 'Reports', gradient: 'from-teal-500 to-teal-600', icon: 'M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
+      { id: 'dataupload', label: 'Data Upload', gradient: 'from-blue-500 to-blue-600', icon: 'M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12' }
+    ]
+
+    const getTabTitle = (tab) => {
+      const titles = {
+        'registration': 'Registration Portal',
+        'users': 'User Management',
+        'settings': 'Settings',
+        'reports': 'Reports & Analytics',
+        'dataupload': 'Data Upload'
+      }
+      return titles[tab] || 'Admin Dashboard'
+    }
+
+    const getTabDescription = (tab) => {
+      const descriptions = {
+        'registration': 'Register new schools, branches, and users in the system',
+        'users': 'Manage teachers, students, parents, and staff accounts',
+        'settings': 'Configure school information and system settings',
+        'reports': 'View system reports, analytics, and upload report card data',
+        'dataupload': 'Upload and manage data files'
+      }
+      return descriptions[tab] || 'Manage your administrative tasks'
+    }
+
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-        {/* Modern Header */}
-        <div className="bg-white border-b border-gray-200 shadow-sm">
-          <div className="max-w-7xl mx-auto px-6 py-4">
-            <div className="flex justify-between items-center">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
-                  <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                  </svg>
+      <div className="h-screen bg-gray-50 flex overflow-hidden">
+        {/* Left Sidebar Navigation */}
+        <div className={`${sidebarOpen ? 'w-64' : 'w-0'} bg-gradient-to-b from-indigo-700 to-blue-700 text-white shadow-2xl flex flex-col transition-all duration-300 overflow-hidden h-full flex-shrink-0`}>
+          {/* Sidebar Header - Fixed at top */}
+          {sidebarOpen && (
+            <>
+              <div className="p-6 border-b border-indigo-600 flex-shrink-0">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                    <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h1 className="text-lg font-bold">Admin Portal</h1>
+                    <p className="text-xs text-indigo-200">Dashboard</p>
+                  </div>
                 </div>
-                <div>
-                  <h1 className="text-2xl font-bold text-gray-900 m-0">Welcome back, {user?.full_name || user?.name || user?.email?.split('@')[0]}!</h1>
-                  <p className="text-sm text-gray-500 mt-1">Admin Dashboard</p>
+                <div className="pt-4 border-t border-indigo-600">
+                  <p className="text-sm font-medium truncate">{user?.full_name || user?.name || user?.email?.split('@')[0]}</p>
+                  <p className="text-xs text-indigo-200 mt-1">Welcome back!</p>
                 </div>
               </div>
-              <button 
-                onClick={handleLogout} 
-                className="flex items-center gap-2 bg-white border-2 border-gray-200 text-gray-700 px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 shadow-sm hover:shadow-md"
+            </>
+          )}
+
+          {/* Navigation Menu - Scrollable */}
+          {sidebarOpen && (
+            <div className="flex-1 py-4 overflow-y-auto overflow-x-hidden min-h-0">
+              {adminTabs.map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => {
+                    setAdminActiveTab(tab.id)
+                    setSidebarOpen(false) // Hide sidebar when item is selected
+                  }}
+                  className={`w-full px-6 py-4 text-left flex items-center gap-4 transition-all duration-200 ${
+                    adminActiveTab === tab.id
+                      ? 'bg-white/20 border-r-4 border-white shadow-lg'
+                      : 'hover:bg-white/10'
+                  }`}
+                >
+                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                    adminActiveTab === tab.id ? 'bg-white/30' : 'bg-white/10'
+                  }`}>
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={tab.icon} />
+                    </svg>
+                  </div>
+                  <span className="font-medium">{tab.label}</span>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Logout Button - Fixed at bottom */}
+          {sidebarOpen && (
+            <div className="p-4 border-t border-indigo-600 flex-shrink-0 bg-gradient-to-b from-indigo-700 to-blue-700">
+              <button
+                onClick={handleLogout}
+                className="w-full px-6 py-3 bg-white/20 hover:bg-white/30 rounded-lg flex items-center justify-center gap-3 transition-all duration-200 font-medium"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
                 Logout
               </button>
             </div>
-          </div>
+          )}
         </div>
 
-        <div className="max-w-7xl mx-auto px-6 py-8">
-          {/* Statistics Cards - Modern Design */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col overflow-hidden h-full min-w-0">
+          {/* Top Header Bar */}
+          <div className="bg-white border-b border-gray-200 shadow-sm px-8 py-4">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-4">
+                {/* Hamburger Menu Button */}
+                <button
+                  onClick={() => setSidebarOpen(!sidebarOpen)}
+                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+                  aria-label="Toggle sidebar"
+                >
+                  <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                </button>
+                
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    {getTabTitle(adminActiveTab)}
+                  </h2>
+                  <p className="text-sm text-gray-500 mt-1">
+                    {getTabDescription(adminActiveTab)}
+                  </p>
+                </div>
+              </div>
+              
+              {/* Quick Stats */}
+              <div className="flex gap-4">
+                <div className="text-right">
+                  <p className="text-xs text-gray-500">Schools</p>
+                  <p className="text-2xl font-bold text-blue-600">{loadingStats ? '...' : stats.schools}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-gray-500">Users</p>
+                  <p className="text-2xl font-bold text-green-600">{loadingStats ? '...' : stats.users}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-gray-500">Students</p>
+                  <p className="text-2xl font-bold text-orange-600">{loadingStats ? '...' : stats.students}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Scrollable Content */}
+          <div className="flex-1 overflow-y-auto overflow-x-hidden bg-gray-50 p-8 min-h-0">
+            {/* Statistics Cards - Modern Design */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
             {/* Schools Card */}
             <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 relative overflow-hidden group">
               <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-blue-100 to-blue-200 rounded-full -mr-10 -mt-10 opacity-50 group-hover:opacity-70 transition-opacity"></div>
@@ -500,44 +619,9 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Professional Tab Navigation */}
-          <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden mb-6">
-            <div className="flex gap-1 border-b border-gray-200 bg-gray-50 px-4 py-2 overflow-x-auto">
-              {['registration', 'users', 'settings', 'reports', 'dataupload'].map(tab => {
-                const tabLabels = {
-                  'registration': 'Registration',
-                  'users': 'User Management',
-                  'settings': 'Settings',
-                  'reports': 'Reports',
-                  'dataupload': 'Data Upload'
-                }
-                const tabIcons = {
-                  'registration': 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
-                  'users': 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z',
-                  'settings': 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z',
-                  'reports': 'M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
-                  'dataupload': 'M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12'
-                }
-                return (
-                  <button
-                    key={tab}
-                    onClick={() => setAdminActiveTab(tab)}
-                    className={`flex items-center gap-2 px-4 py-2.5 rounded-md text-sm font-medium transition-all duration-300 whitespace-nowrap border-b-2 transform ${
-                      adminActiveTab === tab 
-                        ? 'bg-white text-indigo-600 border-indigo-600 scale-105 shadow-sm' 
-                        : 'text-gray-600 hover:text-gray-900 border-transparent hover:border-gray-300 hover:scale-102'
-                    }`}
-                  >
-                    <svg className={`w-4 h-4 transition-transform duration-300 ${adminActiveTab === tab ? 'scale-110' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={tabIcons[tab]} />
-                    </svg>
-                    {tabLabels[tab] || tab.charAt(0).toUpperCase() + tab.slice(1)}
-                  </button>
-                )
-              })}
-            </div>
-
-            <div className="p-6">
+            {/* Tab Content */}
+            <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
+              <div className="p-6">
               {adminActiveTab === 'registration' && (
                 <div className="space-y-6 animate-fadeIn">
                   {/* Modern Header Section */}
@@ -1043,6 +1127,7 @@ const Dashboard = () => {
                   </div>
                 </div>
               )}
+              </div>
             </div>
           </div>
         </div>

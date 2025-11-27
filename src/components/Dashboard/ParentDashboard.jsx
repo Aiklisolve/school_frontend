@@ -16,6 +16,7 @@ const ParentDashboard = ({ user, handleLogout }) => {
   const [chatMessages, setChatMessages] = useState([])
   const [chatInput, setChatInput] = useState('')
   const [isSending, setIsSending] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(true)
 
   // Fetch PTM sessions when calendar tab is active
   useEffect(() => {
@@ -315,101 +316,186 @@ const ParentDashboard = ({ user, handleLogout }) => {
 
   const { daysInMonth, startingDayOfWeek, year, month } = getDaysInMonth(currentDate)
 
+  const tabs = [
+    { id: 'Report Cards', label: 'Report Cards', gradient: 'from-indigo-500 to-indigo-600' },
+    { id: 'chat', label: 'Chat', gradient: 'from-violet-500 to-violet-600' },
+    { id: 'meeting', label: 'Meetings', gradient: 'from-emerald-500 to-emerald-600' },
+    { id: 'calendar', label: 'Calendar', gradient: 'from-orange-500 to-orange-600' }
+  ]
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-50">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 px-8 py-6 shadow-xl">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-3">
-              <span className="text-4xl">👨‍👩‍👧‍👦</span>
+    <div className="h-screen bg-gray-50 flex overflow-hidden">
+      {/* Left Sidebar Navigation */}
+      <div className={`${sidebarOpen ? 'w-64' : 'w-0'} bg-gradient-to-b from-purple-700 to-pink-700 text-white shadow-2xl flex flex-col transition-all duration-300 overflow-hidden h-full flex-shrink-0`}>
+        {/* Sidebar Header - Fixed at top */}
+        {sidebarOpen && (
+          <>
+            <div className="p-6 border-b border-purple-600 flex-shrink-0">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                  <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <h1 className="text-lg font-bold">Parent Portal</h1>
+                  <p className="text-xs text-purple-200">Dashboard</p>
+                </div>
+              </div>
+              <div className="pt-4 border-t border-purple-600">
+                <p className="text-sm font-medium truncate">{user?.full_name || user?.name || user?.email?.split('@')[0]}</p>
+                <p className="text-xs text-purple-200 mt-1">Welcome back!</p>
+              </div>
             </div>
-            <div>
-              <h1 className="m-0 text-white text-3xl font-bold">Welcome, {user?.full_name || user?.name || user?.email}!</h1>
-              <p className="inline-block bg-white/20 backdrop-blur-sm text-white px-4 py-1.5 rounded-full text-sm font-semibold mt-2">
-                PARENT
-              </p>
-            </div>
+          </>
+        )}
+
+        {/* Navigation Menu - Scrollable */}
+        {sidebarOpen && (
+          <div className="flex-1 py-4 overflow-y-auto overflow-x-hidden min-h-0">
+            {tabs.map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => {
+                  setActiveTab(tab.id)
+                  setSidebarOpen(false) // Hide sidebar when item is selected
+                }}
+                className={`w-full px-6 py-4 text-left flex items-center gap-4 transition-all duration-200 ${
+                  activeTab === tab.id
+                    ? 'bg-white/20 border-r-4 border-white shadow-lg'
+                    : 'hover:bg-white/10'
+                }`}
+              >
+                <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                  activeTab === tab.id ? 'bg-white/30' : 'bg-white/10'
+                }`}>
+                {tab.id === 'Report Cards' && (
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                )}
+                {tab.id === 'chat' && (
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
+                )}
+                {tab.id === 'meeting' && (
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                )}
+                {tab.id === 'calendar' && (
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                )}
+                </div>
+                <span className="font-medium">{tab.label}</span>
+              </button>
+            ))}
           </div>
-          <button 
-            onClick={handleLogout} 
-            className="bg-white text-blue-600 border-none px-6 py-3 rounded-xl text-sm font-bold cursor-pointer transition-all duration-200 hover:bg-blue-50 hover:shadow-lg hover:-translate-y-0.5"
-          >
-            Logout
-          </button>
-        </div>
+        )}
+
+        {/* Logout Button - Fixed at bottom */}
+        {sidebarOpen && (
+          <div className="p-4 border-t border-purple-600 flex-shrink-0 bg-gradient-to-b from-purple-700 to-pink-700">
+            <button
+              onClick={handleLogout}
+              className="w-full px-6 py-3 bg-white/20 hover:bg-white/30 rounded-lg flex items-center justify-center gap-3 transition-all duration-200 font-medium"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+              Logout
+            </button>
+          </div>
+        )}
       </div>
 
-      <div className="p-6 max-w-6xl mx-auto">
-        {/* Welcome Card */}
-        <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 rounded-3xl p-8 shadow-2xl mb-6 text-white">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-4xl font-bold mb-2">Parent Dashboard</h2>
-              <p className="text-xl text-blue-100">Track your child's progress and stay connected with the school</p>
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col overflow-hidden h-full min-w-0">
+        {/* Top Header Bar */}
+        <div className="bg-white border-b border-gray-200 shadow-sm px-8 py-4">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-4">
+              {/* Hamburger Menu Button */}
+              <button
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                className="p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+                aria-label="Toggle sidebar"
+              >
+                <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
+              
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">
+                  {activeTab === 'Report Cards' && 'Academic Reports'}
+                  {activeTab === 'chat' && 'AI Assistant Chat'}
+                  {activeTab === 'meeting' && 'Parent-Teacher Meetings'}
+                  {activeTab === 'calendar' && 'Event Calendar'}
+                </h2>
+                <p className="text-sm text-gray-500 mt-1">
+                  {activeTab === 'Report Cards' && 'View your child\'s academic performance'}
+                  {activeTab === 'chat' && 'Get instant answers about your child\'s education'}
+                  {activeTab === 'meeting' && 'Schedule and manage meetings with teachers'}
+                  {activeTab === 'calendar' && 'View upcoming events and sessions'}
+                </p>
+              </div>
             </div>
-            <div className="hidden md:block">
-              <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-6">
-                <div className="text-5xl">📚</div>
+            
+            {/* Quick Stats */}
+            <div className="flex gap-4">
+              <div className="text-right">
+                <p className="text-xs text-gray-500">Report Cards</p>
+                <p className="text-2xl font-bold text-indigo-600">{reportCards.length}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-gray-500">Meetings</p>
+                <p className="text-2xl font-bold text-emerald-600">{ptmBookings.length}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-gray-500">Sessions</p>
+                <p className="text-2xl font-bold text-amber-600">{ptmSessions.length}</p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="bg-white rounded-2xl shadow-xl p-6">
-          <div className="flex gap-2 border-b-2 border-blue-100 pb-2 mb-6 overflow-x-auto">
-            {[
-              { id: 'Report Cards', label: 'Report Cards', icon: '📊' },
-              { id: 'chat', label: 'Chat', icon: '💬' },
-              { id: 'meeting', label: 'Meetings', icon: '🤝' },
-              { id: 'calendar', label: 'Calendar', icon: '📅' }
-            ].map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`px-6 py-3 rounded-xl font-bold transition-all duration-200 whitespace-nowrap flex items-center gap-2 ${
-                  activeTab === tab.id 
-                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg' 
-                    : 'text-gray-600 hover:bg-blue-50 hover:text-blue-600'
-                }`}
-              >
-                <span className="text-xl">{tab.icon}</span>
-                <span>{tab.label}</span>
-              </button>
-            ))}
-          </div>
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden bg-gray-50 p-8 min-h-0">
 
-          <div className="mt-4">
-            {activeTab === 'Report Cards' && (
-              <div className="p-6">
-                <div className="mb-6">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Report Cards & Marks</h3>
-                  <p className="text-gray-600">View your child's academic performance and report cards</p>
-                </div>
+          {/* Content Sections */}
+          {activeTab === 'Report Cards' && (
+            <div className="space-y-6">
                 
                 {loadingReportCards ? (
                   <div className="text-center py-12">
-                    <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+                    <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-4"></div>
                     <p className="text-gray-600 font-medium">Loading report cards...</p>
                   </div>
                 ) : reportCards.length > 0 ? (
                   <div className="space-y-6">
                     {/* Summary Card */}
-                    <div className="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl shadow-lg p-6 text-white">
+                    <div className="bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-xl shadow-lg p-6 text-white">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-blue-100 text-sm font-medium mb-1">Total Records</p>
+                          <p className="text-indigo-100 text-sm font-medium mb-1">Total Records</p>
                           <p className="text-4xl font-bold">{reportCards.length}</p>
                         </div>
-                        <div className="text-5xl opacity-80">📊</div>
+                        <div className="w-16 h-16 bg-white/20 rounded-xl flex items-center justify-center">
+                          <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                          </svg>
+                        </div>
                       </div>
                     </div>
                     
                     {/* Report Cards Grid */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                       {reportCards.map((card, idx) => (
-                        <div key={card.report_id || card.id || card.report_card_id || idx} className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 border-l-4 border-blue-500 overflow-hidden">
+                        <div key={card.report_id || card.id || card.report_card_id || idx} className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 border-l-4 border-indigo-500 overflow-hidden">
                           <div className="p-6">
                             {/* Header */}
                             <div className="flex justify-between items-start mb-4">
@@ -427,7 +513,7 @@ const ParentDashboard = ({ user, handleLogout }) => {
                               {card.status && (
                                 <span className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap ${
                                   card.status === 'DRAFT' ? 'bg-yellow-100 text-yellow-800' :
-                                    card.status === 'PUBLISHED' ? 'bg-blue-100 text-blue-800' :
+                                    card.status === 'PUBLISHED' ? 'bg-indigo-100 text-indigo-800' :
                                   'bg-gray-100 text-gray-800'
                                 }`}>
                                   {card.status}
@@ -438,10 +524,14 @@ const ParentDashboard = ({ user, handleLogout }) => {
                             {/* Details */}
                             <div className="space-y-3">
                               {card.overall_percentage && (
-                                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 border border-blue-200">
+                                <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg p-4 border border-indigo-200">
                                   <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
-                                      <span className="text-2xl">📊</span>
+                                      <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                        </svg>
+                                      </div>
                                       <div>
                                         <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Overall Percentage</p>
                                         <p className="text-gray-900 font-bold text-2xl">{card.overall_percentage}%</p>
@@ -453,7 +543,11 @@ const ParentDashboard = ({ user, handleLogout }) => {
                               
                               {card.subjects_count && (
                                 <div className="flex items-start">
-                                  <span className="text-blue-600 mr-3 text-lg">📚</span>
+                                  <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center mr-3">
+                                    <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                    </svg>
+                                  </div>
                                   <div>
                                     <p className="text-xs text-gray-500 font-medium">Subjects</p>
                                     <p className="text-gray-900 font-semibold">{card.subjects_count} subjects</p>
@@ -463,7 +557,11 @@ const ParentDashboard = ({ user, handleLogout }) => {
                               
                               {card.created_at && (
                                 <div className="flex items-start">
-                                  <span className="text-blue-600 mr-3 text-lg">📅</span>
+                                  <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center mr-3">
+                                    <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                  </div>
                                   <div>
                                     <p className="text-xs text-gray-500 font-medium">Created Date</p>
                                     <p className="text-gray-900 font-semibold">
@@ -479,7 +577,11 @@ const ParentDashboard = ({ user, handleLogout }) => {
                               
                               {card.updated_at && (
                                 <div className="flex items-start">
-                                  <span className="text-blue-600 mr-3 text-lg">🔄</span>
+                                  <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center mr-3">
+                                    <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                    </svg>
+                                  </div>
                                   <div>
                                     <p className="text-xs text-gray-500 font-medium">Last Updated</p>
                                     <p className="text-gray-900 font-semibold">
@@ -526,27 +628,33 @@ const ParentDashboard = ({ user, handleLogout }) => {
                     </div>
                   </div>
                 ) : (
-                  <div className="text-center py-16 bg-white rounded-xl shadow-md">
-                    <div className="text-6xl mb-4">📊</div>
+                  <div className="text-center py-16 bg-white rounded-xl shadow-md border border-gray-200">
+                    <div className="w-20 h-20 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <svg className="w-10 h-10 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                      </svg>
+                    </div>
                     <h4 className="text-xl font-bold text-gray-900 mb-2">No Report Cards Found</h4>
                     <p className="text-gray-600 mb-1">No report cards or marks have been uploaded yet.</p>
                     <p className="text-sm text-gray-500">Please check back later.</p>
                   </div>
                 )}
-              </div>
-            )}
+            </div>
+          )}
 
-            {activeTab === 'chat' && (
-              <div className="flex flex-col h-[600px] bg-white rounded-lg shadow-md overflow-hidden">
+          {activeTab === 'chat' && (
+              <div className="animate-fadeIn flex flex-col h-[600px] bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
                 {/* Chat Header */}
-                <div className="bg-gradient-to-r from-blue-500 to-indigo-600 px-6 py-4 border-b border-blue-600">
+                <div className="bg-gradient-to-r from-violet-500 to-violet-600 px-6 py-4 border-b border-violet-600">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-xl">
-                      🤖
+                    <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                      </svg>
                     </div>
                     <div>
                       <h3 className="text-lg font-bold text-white">AI Assistant</h3>
-                      <p className="text-xs text-blue-100">Ask me anything about your child's education</p>
+                      <p className="text-xs text-violet-100">Ask me anything about your child's education</p>
                     </div>
                   </div>
                 </div>
@@ -570,7 +678,7 @@ const ParentDashboard = ({ user, handleLogout }) => {
                         <div
                           className={`max-w-[80%] rounded-2xl px-4 py-3 ${
                             message.role === 'user'
-                              ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white'
+                              ? 'bg-gradient-to-r from-violet-500 to-violet-600 text-white'
                               : 'bg-white text-gray-900 border border-gray-200 shadow-sm'
                           }`}
                         >
@@ -583,7 +691,7 @@ const ParentDashboard = ({ user, handleLogout }) => {
                                 {message.content}
                               </p>
                               <p className={`text-xs mt-2 ${
-                                message.role === 'user' ? 'text-blue-100' : 'text-gray-400'
+                                message.role === 'user' ? 'text-violet-100' : 'text-gray-400'
                               }`}>
                                 {new Date(message.timestamp).toLocaleTimeString('en-US', {
                                   hour: '2-digit',
@@ -641,7 +749,7 @@ const ParentDashboard = ({ user, handleLogout }) => {
                           }
                         }}
                         placeholder="Type your message here... (Press Enter to send, Shift+Enter for new line)"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent resize-none"
                         rows="1"
                         style={{
                           minHeight: '48px',
@@ -656,7 +764,7 @@ const ParentDashboard = ({ user, handleLogout }) => {
                     <button
                       type="submit"
                       disabled={!chatInput.trim() || isSending}
-                      className="px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl font-semibold hover:from-blue-600 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg disabled:hover:shadow-md flex items-center gap-2"
+                      className="px-6 py-3 bg-gradient-to-r from-violet-500 to-violet-600 text-white rounded-xl font-semibold hover:from-violet-600 hover:to-violet-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg disabled:hover:shadow-md flex items-center gap-2"
                     >
                       <span>Send</span>
                       <span>➤</span>
@@ -667,10 +775,10 @@ const ParentDashboard = ({ user, handleLogout }) => {
                   </p>
                 </div>
               </div>
-            )}
+          )}
 
-            {activeTab === 'meeting' && (
-              <div className="p-6">
+          {activeTab === 'meeting' && (
+              <div className="animate-fadeIn">
                 <div className="mb-6">
                   <h3 className="text-2xl font-bold text-gray-900 mb-2">My Parent-Teacher Meeting Bookings</h3>
                   <p className="text-gray-600">View and manage your parent-teacher meeting bookings</p>
@@ -678,26 +786,30 @@ const ParentDashboard = ({ user, handleLogout }) => {
                 
                 {loadingBookings ? (
                   <div className="text-center py-12">
-                    <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+                    <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-4"></div>
                     <p className="text-gray-600 font-medium">Loading your bookings...</p>
                   </div>
                 ) : ptmBookings.length > 0 ? (
                   <div className="space-y-6">
                     {/* Summary Card */}
-                    <div className="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl shadow-lg p-6 text-white">
+                    <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-xl shadow-lg p-6 text-white">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-blue-100 text-sm font-medium mb-1">Total Bookings</p>
+                          <p className="text-emerald-100 text-sm font-medium mb-1">Total Bookings</p>
                           <p className="text-4xl font-bold">{ptmBookings.length}</p>
                         </div>
-                        <div className="text-5xl opacity-80">📅</div>
+                        <div className="w-16 h-16 bg-white/20 rounded-xl flex items-center justify-center">
+                          <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                        </div>
                       </div>
                     </div>
                     
                     {/* Bookings Grid */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                       {ptmBookings.map((booking, idx) => (
-                        <div key={booking.booking_id || booking.id || idx} className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 border-l-4 border-blue-500 overflow-hidden">
+                        <div key={booking.booking_id || booking.id || idx} className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 border-l-4 border-emerald-500 overflow-hidden">
                           <div className="p-6">
                             {/* Header */}
                             <div className="flex justify-between items-start mb-4">
@@ -709,7 +821,7 @@ const ParentDashboard = ({ user, handleLogout }) => {
                               {booking.status && (
                                 <span className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap ${
                                   (booking.status === 'CONFIRMED' || booking.status === 'confirmed') 
-                                    ? 'bg-blue-100 text-blue-800' 
+                                    ? 'bg-emerald-100 text-emerald-800' 
                                     : (booking.status === 'PENDING' || booking.status === 'pending')
                                     ? 'bg-yellow-100 text-yellow-800'
                                     : (booking.status === 'CANCELLED' || booking.status === 'cancelled')
@@ -725,7 +837,11 @@ const ParentDashboard = ({ user, handleLogout }) => {
                             <div className="space-y-3">
                               {(booking.session_date || booking.date || booking.booking_date) && (
                                 <div className="flex items-start">
-                                  <span className="text-blue-600 mr-3 text-lg">📅</span>
+                                  <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center mr-3">
+                                    <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                  </div>
                                   <div>
                                     <p className="text-xs text-gray-500 font-medium">Date</p>
                                     <p className="text-gray-900 font-semibold">
@@ -742,7 +858,11 @@ const ParentDashboard = ({ user, handleLogout }) => {
                               
                               {(booking.start_time || booking.time) && (
                                 <div className="flex items-start">
-                                  <span className="text-blue-600 mr-3 text-lg">⏰</span>
+                                  <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center mr-3">
+                                    <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                  </div>
                                   <div>
                                     <p className="text-xs text-gray-500 font-medium">Time</p>
                                     <p className="text-gray-900 font-semibold">
@@ -754,7 +874,11 @@ const ParentDashboard = ({ user, handleLogout }) => {
                               
                               {(booking.teacher_name || booking.teacher) && (
                                 <div className="flex items-start">
-                                  <span className="text-blue-600 mr-3 text-lg">👨‍🏫</span>
+                                  <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center mr-3">
+                                    <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                    </svg>
+                                  </div>
                                   <div>
                                     <p className="text-xs text-gray-500 font-medium">Teacher</p>
                                     <p className="text-gray-900 font-semibold">{booking.teacher_name || booking.teacher}</p>
@@ -764,7 +888,11 @@ const ParentDashboard = ({ user, handleLogout }) => {
                               
                               {(booking.class_name || booking.class) && (
                                 <div className="flex items-start">
-                                  <span className="text-blue-600 mr-3 text-lg">📚</span>
+                                  <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center mr-3">
+                                    <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                    </svg>
+                                  </div>
                                   <div>
                                     <p className="text-xs text-gray-500 font-medium">Class</p>
                                     <p className="text-gray-900 font-semibold">{booking.class_name || booking.class}</p>
@@ -774,7 +902,11 @@ const ParentDashboard = ({ user, handleLogout }) => {
                               
                               {(booking.school_name || booking.school) && (
                                 <div className="flex items-start">
-                                  <span className="text-blue-600 mr-3 text-lg">🏫</span>
+                                  <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center mr-3">
+                                    <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                    </svg>
+                                  </div>
                                   <div>
                                     <p className="text-xs text-gray-500 font-medium">School</p>
                                     <p className="text-gray-900 font-semibold">{booking.school_name || booking.school}</p>
@@ -796,20 +928,22 @@ const ParentDashboard = ({ user, handleLogout }) => {
                     </div>
                   </div>
                 ) : (
-                  <div className="text-center py-16 bg-white rounded-xl shadow-md">
-                    <div className="text-6xl mb-4">📅</div>
+                  <div className="text-center py-16 bg-white rounded-xl shadow-md border border-gray-200">
+                    <div className="w-20 h-20 bg-gradient-to-br from-green-100 to-green-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    </div>
                     <h4 className="text-xl font-bold text-gray-900 mb-2">No Bookings Found</h4>
                     <p className="text-gray-600 mb-1">You don't have any parent-teacher meeting bookings yet.</p>
                     <p className="text-sm text-gray-500">Book a meeting to get started!</p>
                   </div>
                 )}
-              </div>
-            )}
+            </div>
+          )}
 
-            {activeTab === 'calendar' && (
-              <div className="p-6 bg-gray-50 rounded-md">
-                <h3 className="text-lg font-semibold mb-4">Event Calendar</h3>
-                
+          {activeTab === 'calendar' && (
+            <div className="space-y-6 relative">
                 {loadingSessions ? (
                   <div className="text-center py-8">
                     <p className="text-gray-600">Loading sessions...</p>
@@ -823,13 +957,13 @@ const ParentDashboard = ({ user, handleLogout }) => {
                         <div className="flex gap-2">
                           <button
                             onClick={() => navigateMonth(-1)}
-                            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-semibold"
+                            className="px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg hover:from-orange-600 hover:to-orange-700 transition-all duration-200 font-semibold shadow-md hover:shadow-lg"
                           >
                             ← Previous
                           </button>
                           <button
                             onClick={() => navigateMonth(1)}
-                            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-semibold"
+                            className="px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg hover:from-orange-600 hover:to-orange-700 transition-all duration-200 font-semibold shadow-md hover:shadow-lg"
                           >
                             Next →
                           </button>
@@ -842,7 +976,7 @@ const ParentDashboard = ({ user, handleLogout }) => {
                             <select
                               value={month}
                               onChange={(e) => changeMonth(parseInt(e.target.value))}
-                              className="px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 font-medium cursor-pointer hover:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              className="px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 font-medium cursor-pointer hover:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                             >
                               {monthNames.map((name, index) => (
                                 <option key={index} value={index}>
@@ -857,7 +991,7 @@ const ParentDashboard = ({ user, handleLogout }) => {
                             <select
                               value={year}
                               onChange={(e) => changeYear(parseInt(e.target.value))}
-                              className="px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 font-medium cursor-pointer hover:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              className="px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 font-medium cursor-pointer hover:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                             >
                               {yearOptions.map((y) => (
                                 <option key={y} value={y}>
@@ -871,7 +1005,7 @@ const ParentDashboard = ({ user, handleLogout }) => {
                         {/* Today Button */}
                         <button
                           onClick={goToToday}
-                          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-semibold"
+                          className="px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg hover:from-orange-600 hover:to-orange-700 transition-all duration-200 font-semibold shadow-md hover:shadow-lg"
                         >
                           Today
                         </button>
@@ -886,11 +1020,11 @@ const ParentDashboard = ({ user, handleLogout }) => {
                     </div>
 
                     {/* Calendar Grid */}
-                    <div className="bg-white rounded-lg shadow-md overflow-hidden">
+                    <div className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
                       {/* Day Headers */}
-                      <div className="grid grid-cols-7 bg-blue-600 text-white">
+                      <div className="grid grid-cols-7 bg-gradient-to-r from-orange-500 via-orange-600 to-orange-500 text-white">
                         {dayNames.map(day => (
-                          <div key={day} className="p-3 text-center font-semibold text-sm">
+                          <div key={day} className="p-2 text-center font-semibold text-sm">
                             {day}
                           </div>
                         ))}
@@ -900,7 +1034,7 @@ const ParentDashboard = ({ user, handleLogout }) => {
                       <div className="grid grid-cols-7">
                         {/* Empty cells for days before month starts */}
                         {Array.from({ length: startingDayOfWeek }).map((_, index) => (
-                          <div key={`empty-${index}`} className="p-3 min-h-[80px] border border-gray-200 bg-gray-50"></div>
+                          <div key={`empty-${index}`} className="p-2 min-h-[65px] border border-gray-200 bg-gray-50"></div>
                         ))}
 
                         {/* Days of the month */}
@@ -917,47 +1051,47 @@ const ParentDashboard = ({ user, handleLogout }) => {
                             <div
                               key={day}
                               onClick={() => setSelectedDate(date)}
-                              className={`p-2 min-h-[100px] border-2 cursor-pointer transition-all relative ${
+                              className={`p-2 min-h-[80px] border-2 cursor-pointer transition-all relative ${
                                 hasSessions
                                   ? isToday
-                                    ? 'bg-gradient-to-br from-blue-100 to-blue-50 border-blue-500 shadow-md'
+                                    ? 'bg-gradient-to-br from-orange-100 to-orange-50 border-orange-500 shadow-md'
                                     : isSelected
-                                    ? 'bg-gradient-to-br from-blue-200 to-blue-100 border-blue-600 shadow-lg'
-                                    : 'bg-gradient-to-br from-blue-50 to-white border-blue-300 hover:border-blue-400 hover:shadow-md'
+                                    ? 'bg-gradient-to-br from-orange-200 to-orange-100 border-orange-600 shadow-lg'
+                                    : 'bg-gradient-to-br from-orange-50 to-white border-orange-300 hover:border-orange-400 hover:shadow-md'
                                   : isToday
-                                  ? 'bg-blue-100 border-blue-500'
+                                  ? 'bg-orange-100 border-orange-500'
                                   : isSelected
-                                  ? 'bg-blue-200 border-blue-600'
+                                  ? 'bg-orange-200 border-orange-600'
                                   : 'bg-white border-gray-200 hover:bg-gray-50'
                               }`}
                             >
                               {/* Day Number */}
                               <div className={`text-sm font-bold mb-1 flex items-center justify-between ${
-                                isToday ? 'text-blue-700' : hasSessions ? 'text-blue-800' : 'text-gray-900'
+                                isToday ? 'text-orange-700' : hasSessions ? 'text-orange-800' : 'text-gray-900'
                               }`}>
                                 <span>{day}</span>
                                 {hasSessions && (
-                                  <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                                  <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
                                 )}
                               </div>
                               
                               {/* Parent-Teacher Meeting Sessions Indicator */}
                               {hasSessions && (
                                 <div className="space-y-1 mt-1">
-                                  <div className="text-xs font-bold text-blue-700 mb-1">
+                                  <div className="text-xs font-bold text-orange-700 mb-1">
                                     {daySessions.length} Meeting{daySessions.length > 1 ? 's' : ''}
                                   </div>
                                   {daySessions.slice(0, 2).map((session, idx) => (
                                     <div
                                       key={idx}
-                                      className="text-xs bg-blue-500 text-white px-1.5 py-1 rounded font-medium truncate shadow-sm"
+                                      className="text-xs bg-orange-500 text-white px-1.5 py-1 rounded font-medium truncate shadow-sm"
                                       title={session.session_name || 'Parent-Teacher Meeting'}
                                     >
                                       {session.session_name || 'Meeting'}
                                     </div>
                                   ))}
                                   {daySessions.length > 2 && (
-                                    <div className="text-xs text-blue-600 font-bold">
+                                    <div className="text-xs text-orange-600 font-bold">
                                       +{daySessions.length - 2} more
                                     </div>
                                   )}
@@ -969,14 +1103,17 @@ const ParentDashboard = ({ user, handleLogout }) => {
                       </div>
                     </div>
 
+ 
                     {/* Selected Date Sessions */}
                     {selectedDate && (
-                      <div className="bg-gradient-to-br from-blue-50 via-white to-blue-50 rounded-2xl shadow-2xl p-8 border-2 border-blue-300">
+                      <div className="bg-gradient-to-br from-orange-50 via-white to-orange-50 rounded-2xl shadow-2xl p-8 border-2 border-orange-300">
                         {/* Header Section */}
-                        <div className="flex items-center justify-between mb-6 pb-4 border-b-2 border-blue-200">
+                        <div className="flex items-center justify-between mb-6 pb-4 border-b-2 border-orange-200">
                           <div className="flex items-center gap-4">
-                            <div className="bg-blue-500 text-white rounded-full w-12 h-12 flex items-center justify-center text-xl font-bold shadow-lg">
-                              📅
+                            <div className="bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-full w-12 h-12 flex items-center justify-center shadow-lg">
+                              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                              </svg>
                             </div>
                             <div>
                               <h4 className="text-2xl font-bold text-gray-900">
@@ -1005,9 +1142,9 @@ const ParentDashboard = ({ user, handleLogout }) => {
                         {getSessionsForDate(selectedDate).length > 0 ? (
                           <div className="space-y-4">
                             {getSessionsForDate(selectedDate).map((session, idx) => (
-                              <div key={idx} className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-blue-200">
+                              <div key={idx} className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-orange-200">
                                 {/* Session Header */}
-                                <div className="bg-gradient-to-r from-blue-500 to-indigo-600 px-6 py-4">
+                                <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-4">
                                   <h5 className="font-bold text-white text-xl">
                                     {session.session_name || 'Parent-Teacher Meeting'}
                                   </h5>
@@ -1017,7 +1154,7 @@ const ParentDashboard = ({ user, handleLogout }) => {
                                 <div className="p-6">
                                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {session.school_name && (
-                                      <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                                      <div className="bg-orange-50 rounded-lg p-4 border border-orange-200">
                                         <div className="flex items-center gap-3 mb-2">
                                           <span className="text-2xl">🏫</span>
                                           <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide">School</p>
@@ -1027,7 +1164,7 @@ const ParentDashboard = ({ user, handleLogout }) => {
                                     )}
                                     
                                     {session.class_name && (
-                                      <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                                      <div className="bg-orange-50 rounded-lg p-4 border border-orange-200">
                                         <div className="flex items-center gap-3 mb-2">
                                           <span className="text-2xl">📚</span>
                                           <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide">Class</p>
@@ -1071,9 +1208,8 @@ const ParentDashboard = ({ user, handleLogout }) => {
                     )}
                   </div>
                 )}
-              </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

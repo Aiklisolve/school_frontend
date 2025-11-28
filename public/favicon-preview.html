@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Favicon Preview</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .icon-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+        .icon-item {
+            text-align: center;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            background: white;
+            transition: transform 0.2s;
+        }
+        .icon-item:hover {
+            transform: scale(1.05);
+            border-color: #4F46E5;
+        }
+        .icon-preview {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 10px;
+            display: block;
+        }
+        .icon-name {
+            font-weight: bold;
+            color: #333;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Favicon Icon Options - Choose One</h1>
+        <div class="icon-grid">
+            <!-- Option 1: Letter S -->
+            <div class="icon-item">
+                <svg class="icon-preview" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+                    <defs>
+                        <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#4F46E5;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#7C3AED;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <circle cx="50" cy="50" r="48" fill="url(#grad1)"/>
+                    <path d="M 30 20 Q 30 15 38 15 L 55 15 Q 63 15 63 20 Q 63 25 55 25 L 42 25 Q 35 25 35 32 L 35 38 Q 35 45 42 45 L 58 45 Q 65 45 65 52 Q 65 58 58 58 L 42 58 Q 35 58 35 65 L 35 72 Q 35 78 42 78 L 62 78 Q 70 78 70 85 Q 70 90 62 90 L 30 90 Q 30 85 30 85 Z" fill="#FFFFFF"/>
+                    <circle cx="68" cy="32" r="5" fill="#FBBF24"/>
+                </svg>
+                <div class="icon-name">Letter S</div>
+            </div>
+
+            <!-- Option 2: Graduation Cap -->
+            <div class="icon-item">
+                <svg class="icon-preview" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+                    <defs>
+                        <linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#4F46E5;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#7C3AED;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <circle cx="50" cy="50" r="48" fill="url(#grad2)"/>
+                    <ellipse cx="50" cy="40" rx="20" ry="6" fill="#1F2937"/>
+                    <rect x="42" y="40" width="16" height="12" fill="#1F2937"/>
+                    <circle cx="50" cy="52" r="3" fill="#FBBF24"/>
+                </svg>
+                <div class="icon-name">Graduation Cap</div>
+            </div>
+
+            <!-- Option 3: Book -->
+            <div class="icon-item">
+                <svg class="icon-preview" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+                    <defs>
+                        <linearGradient id="grad3" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#4F46E5;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#7C3AED;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <circle cx="50" cy="50" r="48" fill="url(#grad3)"/>
+                    <rect x="35" y="40" width="30" height="20" fill="#FFFFFF" rx="2"/>
+                    <line x1="50" y1="40" x2="50" y2="60" stroke="#4F46E5" stroke-width="2"/>
+                    <line x1="40" y1="48" x2="45" y2="48" stroke="#9CA3AF" stroke-width="1.5"/>
+                    <line x1="55" y1="48" x2="60" y2="48" stroke="#9CA3AF" stroke-width="1.5"/>
+                </svg>
+                <div class="icon-name">Open Book</div>
+            </div>
+
+            <!-- Option 4: School Building -->
+            <div class="icon-item">
+                <svg class="icon-preview" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+                    <defs>
+                        <linearGradient id="grad4" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#4F46E5;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#7C3AED;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <circle cx="50" cy="50" r="48" fill="url(#grad4)"/>
+                    <rect x="30" y="55" width="40" height="30" fill="#FFFFFF" rx="2"/>
+                    <polygon points="20,55 50,35 80,55" fill="#EF4444"/>
+                    <rect x="42" y="70" width="12" height="15" fill="#FBBF24" rx="1"/>
+                    <rect x="35" y="60" width="8" height="8" fill="#FEF3C7" rx="1"/>
+                    <rect x="57" y="60" width="8" height="8" fill="#FEF3C7" rx="1"/>
+                </svg>
+                <div class="icon-name">School Building</div>
+            </div>
+
+            <!-- Option 5: Lightbulb -->
+            <div class="icon-item">
+                <svg class="icon-preview" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+                    <defs>
+                        <linearGradient id="grad5" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#4F46E5;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#7C3AED;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <circle cx="50" cy="50" r="48" fill="url(#grad5)"/>
+                    <path d="M 50 25 Q 40 25 40 35 Q 40 45 50 50 Q 60 45 60 35 Q 60 25 50 25" fill="#FBBF24"/>
+                    <rect x="45" y="50" width="10" height="8" fill="#1F2937" rx="1"/>
+                    <rect x="47" y="58" width="6" height="3" fill="#374151" rx="1"/>
+                </svg>
+                <div class="icon-name">Lightbulb</div>
+            </div>
+
+            <!-- Option 6: Shield -->
+            <div class="icon-item">
+                <svg class="icon-preview" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+                    <defs>
+                        <linearGradient id="grad6" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#4F46E5;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#7C3AED;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <circle cx="50" cy="50" r="48" fill="url(#grad6)"/>
+                    <path d="M 50 20 L 35 25 L 35 45 Q 35 65 50 75 Q 65 65 65 45 L 65 25 Z" fill="#FFFFFF"/>
+                    <path d="M 50 30 L 45 32 L 45 45 Q 45 55 50 60 Q 55 55 55 45 L 55 32 Z" fill="#4F46E5"/>
+                </svg>
+                <div class="icon-name">Shield</div>
+            </div>
+
+            <!-- Option 7: Star -->
+            <div class="icon-item">
+                <svg class="icon-preview" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+                    <defs>
+                        <linearGradient id="grad7" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#4F46E5;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#7C3AED;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <circle cx="50" cy="50" r="48" fill="url(#grad7)"/>
+                    <path d="M 50 15 L 55 35 L 75 35 L 60 48 L 65 68 L 50 58 L 35 68 L 40 48 L 25 35 L 45 35 Z" fill="#FBBF24"/>
+                </svg>
+                <div class="icon-name">Star</div>
+            </div>
+
+            <!-- Option 8: Pencil -->
+            <div class="icon-item">
+                <svg class="icon-preview" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+                    <defs>
+                        <linearGradient id="grad8" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#4F46E5;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#7C3AED;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <circle cx="50" cy="50" r="48" fill="url(#grad8)"/>
+                    <path d="M 30 60 L 40 70 L 25 75 Z" fill="#FBBF24"/>
+                    <path d="M 40 70 L 70 40 L 60 30 L 30 60 Z" fill="#FFFFFF"/>
+                    <line x1="60" y1="30" x2="70" y2="40" stroke="#4F46E5" stroke-width="2"/>
+                </svg>
+                <div class="icon-name">Pencil</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
+

@@ -280,9 +280,18 @@ const UsersRegistration = () => {
       const response = await axios.post(`${API_BASE_URL}/users/register`, payload, {
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
         }
       })
+      
+      // Store token if provided in response
+      if (response.data?.token) {
+        localStorage.setItem('token', response.data.token)
+        console.log('Token stored after user registration')
+      } else if (response.data?.data?.token) {
+        localStorage.setItem('token', response.data.data.token)
+        console.log('Token stored after user registration')
+      }
       
       const Swal = await loadSwal()
       Swal.fire({

@@ -98,12 +98,12 @@ const TeacherDashboard = ({ user, handleLogout }) => {
                   <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                   </svg>
-                </div>
+        </div>
                 <div>
                   <h1 className="text-lg font-bold">Teacher Portal</h1>
                   <p className="text-xs text-green-200">Dashboard</p>
+                  </div>
                 </div>
-              </div>
               <div className="pt-4 border-t border-green-600">
                 <p className="text-sm font-medium truncate">{user?.full_name || user?.name || user?.email?.split('@')[0]}</p>
                 <p className="text-xs text-green-200 mt-1">Welcome back!</p>
@@ -144,8 +144,8 @@ const TeacherDashboard = ({ user, handleLogout }) => {
         {/* Logout Button - Fixed at bottom */}
         {sidebarOpen && (
           <div className="p-4 border-t border-green-600 flex-shrink-0 bg-gradient-to-b from-green-700 to-emerald-700">
-            <button
-              onClick={handleLogout}
+            <button 
+              onClick={handleLogout} 
               className="w-full px-6 py-3 bg-white/20 hover:bg-white/30 rounded-lg flex items-center justify-center gap-3 transition-all duration-200 font-medium"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -181,9 +181,9 @@ const TeacherDashboard = ({ user, handleLogout }) => {
                 <p className="text-sm text-gray-500 mt-1">
                   {getTabDescription(activeTab)}
                 </p>
-              </div>
-            </div>
-            
+        </div>
+      </div>
+
             {/* Quick Stats */}
             <div className="flex gap-4">
               <div className="text-right">
@@ -224,7 +224,7 @@ const TeacherDashboard = ({ user, handleLogout }) => {
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">Error Loading Dashboard</h3>
               <p className="text-gray-600">{error}</p>
-            </div>
+          </div>
           ) : (
             <>
               {/* Statistics Cards - Modern Design */}
@@ -364,9 +364,9 @@ const TeacherDashboard = ({ user, handleLogout }) => {
                           </div>
                         </div>
                       ))}
-                    </div>
-                  </div>
-                )}
+                </div>
+              </div>
+            )}
 
                 {/* Recent Circulars - Show only 2 items */}
                 {dashboardData?.recentCirculars && dashboardData.recentCirculars.length > 0 && (
@@ -376,14 +376,14 @@ const TeacherDashboard = ({ user, handleLogout }) => {
                       {dashboardData.recentCirculars.slice(0, 2).map((circular) => (
                         <div key={circular.circular_id} className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-4">
                           <div className="flex justify-between items-start mb-2">
-                            <div>
+                    <div>
                               <h4 className="font-bold text-gray-900 text-lg">{circular.title}</h4>
                               <p className="text-xs text-gray-500 mt-1">Circular #{circular.circular_number}</p>
                             </div>
                             <span className="bg-purple-500 text-white px-3 py-1 rounded-full text-xs font-semibold">
                               {circular.target_audience}
                             </span>
-                          </div>
+                    </div>
                           <p className="text-sm text-gray-700 mt-2">{circular.content}</p>
                           <p className="text-xs text-gray-500 mt-3">
                             {new Date(circular.created_at).toLocaleDateString('en-US', { 
@@ -394,10 +394,10 @@ const TeacherDashboard = ({ user, handleLogout }) => {
                               minute: '2-digit'
                             })}
                           </p>
-                        </div>
-                      ))}
-                    </div>
                   </div>
+                      ))}
+                  </div>
+                </div>
                 )}
               </div>
             )}
@@ -412,8 +412,8 @@ const TeacherDashboard = ({ user, handleLogout }) => {
                 ) : dashboardData?.currentAssignments && dashboardData.currentAssignments.length > 0 ? (
                   dashboardData.currentAssignments.map((assignment, idx) => (
                     <div key={assignment.section_id || idx} className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-6 shadow-md hover:shadow-lg transition-all">
-                      <div className="flex justify-between items-start mb-3">
-                        <div>
+                  <div className="flex justify-between items-start mb-3">
+                    <div>
                           <h3 className="text-xl font-bold text-gray-900 mb-2">
                             {assignment.class_name} - Section {assignment.section_name}
                           </h3>
@@ -423,7 +423,7 @@ const TeacherDashboard = ({ user, handleLogout }) => {
                           <p className="text-sm text-gray-600">
                             Section ID: {assignment.section_id} • Class ID: {assignment.class_id}
                           </p>
-                        </div>
+                    </div>
                         <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
                           assignment.is_current 
                             ? 'bg-green-500 text-white' 
@@ -431,16 +431,16 @@ const TeacherDashboard = ({ user, handleLogout }) => {
                         }`}>
                           {assignment.is_current ? 'Current' : 'Inactive'}
                         </span>
-                      </div>
-                      <div className="flex gap-2 mt-4">
-                        <button className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-green-700 transition-colors">
-                          View Class
-                        </button>
-                        <button className="bg-white border-2 border-green-600 text-green-600 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-green-50 transition-colors">
-                          Manage
-                        </button>
-                      </div>
-                    </div>
+                  </div>
+                  <div className="flex gap-2 mt-4">
+                    <button className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-green-700 transition-colors">
+                      View Class
+                    </button>
+                    <button className="bg-white border-2 border-green-600 text-green-600 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-green-50 transition-colors">
+                      Manage
+                    </button>
+                  </div>
+                </div>
                   ))
                 ) : (
                   <div className="text-center py-12 bg-white rounded-xl border-2 border-dashed border-gray-300">
@@ -556,7 +556,7 @@ const TeacherDashboard = ({ user, handleLogout }) => {
                   </div>
                   {dashboardData?.currentAssignments && dashboardData.currentAssignments.length > 0 ? (
                     <>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                         {dashboardData.currentAssignments.map((assignment, idx) => (
                           <div key={assignment.section_id || idx} className="bg-gradient-to-br from-pink-50 to-rose-50 border border-pink-200 rounded-lg p-6">
                             <h4 className="text-lg font-bold text-gray-900 mb-2">
@@ -565,16 +565,16 @@ const TeacherDashboard = ({ user, handleLogout }) => {
                             <p className="text-2xl font-bold text-pink-600 mb-1">
                               {dashboardData?.stats?.totalStudents || 0}
                             </p>
-                            <p className="text-sm text-gray-600">Students</p>
+                      <p className="text-sm text-gray-600">Students</p>
                             <p className="text-xs text-gray-500 mt-2">{assignment.year_name}</p>
-                          </div>
+                    </div>
                         ))}
-                      </div>
-                      <div className="text-center">
-                        <button className="bg-pink-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-pink-700 transition-colors">
-                          View All Students
-                        </button>
-                      </div>
+                  </div>
+                  <div className="text-center">
+                    <button className="bg-pink-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-pink-700 transition-colors">
+                      View All Students
+                    </button>
+                  </div>
                     </>
                   ) : (
                     <div className="text-center py-12">
@@ -603,8 +603,8 @@ const TeacherDashboard = ({ user, handleLogout }) => {
                         
                         return (
                           <div key={ptm.session_id || idx} className="bg-gradient-to-r from-indigo-50 to-blue-50 border border-indigo-200 rounded-lg p-4">
-                            <div className="flex justify-between items-center">
-                              <div>
+                      <div className="flex justify-between items-center">
+                        <div>
                                 <h4 className="font-bold text-gray-900">{dayName}</h4>
                                 <p className="text-sm text-gray-600">
                                   {ptm.session_name} • {ptm.class_name}
@@ -626,26 +626,26 @@ const TeacherDashboard = ({ user, handleLogout }) => {
                                     {ptm.max_bookings} slots available
                                   </p>
                                 )}
-                              </div>
+                        </div>
                               {isToday && (
-                                <span className="bg-indigo-600 text-white px-3 py-1 rounded-lg text-xs font-semibold">Today</span>
+                        <span className="bg-indigo-600 text-white px-3 py-1 rounded-lg text-xs font-semibold">Today</span>
                               )}
-                            </div>
-                          </div>
+                      </div>
+                    </div>
                         )
                       })}
-                    </div>
+                        </div>
                   ) : (
                     <div className="text-center py-12">
                       <div className="text-6xl mb-4">📅</div>
                       <h4 className="text-xl font-bold text-gray-900 mb-2">No Upcoming Events</h4>
                       <p className="text-gray-600">You don't have any upcoming events scheduled.</p>
-                    </div>
+                      </div>
                   )}
-                </div>
-              </div>
+          </div>
+          </div>
             )}
-            </div>
+          </div>
           </div>
             </>
           )}

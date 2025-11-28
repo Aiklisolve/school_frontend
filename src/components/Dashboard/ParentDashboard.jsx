@@ -4,7 +4,7 @@ import axios from 'axios'
 const API_BASE_URL = 'http://localhost:8080/api'
 
 const ParentDashboard = ({ user, handleLogout }) => {
-  const [activeTab, setActiveTab] = useState('Report Cards')
+  const [activeTab, setActiveTab] = useState('overview')
   const [ptmSessions, setPtmSessions] = useState([])
   const [loadingSessions, setLoadingSessions] = useState(false)
   const [ptmBookings, setPtmBookings] = useState([])
@@ -17,6 +17,9 @@ const ParentDashboard = ({ user, handleLogout }) => {
   const [chatInput, setChatInput] = useState('')
   const [isSending, setIsSending] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [studentData, setStudentData] = useState([])
+  const [loadingStudents, setLoadingStudents] = useState(false)
+  const [parentProfile, setParentProfile] = useState(null)
 
   // Fetch PTM sessions when calendar tab is active
   useEffect(() => {
@@ -56,6 +59,32 @@ const ParentDashboard = ({ user, handleLogout }) => {
       
       console.log('Fetching report cards:', { schoolId, yearId, term })
       fetchReportCards(schoolId, yearId, term)
+    }
+  }, [activeTab, user])
+
+  // Fetch student data when Students tab is active
+  useEffect(() => {
+    if (activeTab === 'students') {
+      const userId = user?.id || user?.user_id || user?.parent_id
+      if (userId) {
+        console.log('Fetching student data for parent ID:', userId)
+        fetchStudentData(userId)
+      } else {
+        console.warn('User ID not found in user object:', user)
+      }
+    }
+  }, [activeTab, user])
+
+  // Fetch parent profile data when Overview tab is active
+  useEffect(() => {
+    if (activeTab === 'overview') {
+      const userId = user?.id || user?.user_id || user?.parent_id
+      if (userId) {
+        console.log('Fetching parent profile data for Overview:', userId)
+        fetchStudentData(userId) // This also fetches parent profile
+      } else {
+        console.warn('User ID not found in user object:', user)
+      }
     }
   }, [activeTab, user])
 
@@ -114,6 +143,43 @@ const ParentDashboard = ({ user, handleLogout }) => {
       setPtmBookings([])
     } finally {
       setLoadingBookings(false)
+    }
+  }
+
+  const fetchStudentData = async (userId) => {
+    setLoadingStudents(true)
+    try {
+      const token = localStorage.getItem('token')
+      const url = `${API_BASE_URL}/users/${userId}`
+      console.log('Calling User API for student data:', url)
+      
+      const response = await axios.get(url, {
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      
+      console.log('User API Response for Students:', response.data)
+      
+      // Extract parentStudents from the response
+      const students = response.data?.parentStudents || []
+      setStudentData(students)
+      
+      // Store parent profile data for overview
+      if (response.data?.parent) {
+        setParentProfile(response.data.parent)
+      } else if (response.data?.user) {
+        setParentProfile(response.data.user)
+      }
+      
+      console.log('Students loaded:', students.length)
+    } catch (error) {
+      console.error('Error fetching student data:', error)
+      console.error('Error details:', error.response?.data || error.message)
+      setStudentData([])
+    } finally {
+      setLoadingStudents(false)
     }
   }
 
@@ -317,7 +383,9 @@ const ParentDashboard = ({ user, handleLogout }) => {
   const { daysInMonth, startingDayOfWeek, year, month } = getDaysInMonth(currentDate)
 
   const tabs = [
+    { id: 'overview', label: 'Overview', gradient: 'from-purple-500 to-purple-600' },
     { id: 'Report Cards', label: 'Report Cards', gradient: 'from-indigo-500 to-indigo-600' },
+    { id: 'students', label: 'Students', gradient: 'from-blue-500 to-blue-600' },
     { id: 'chat', label: 'Chat', gradient: 'from-violet-500 to-violet-600' },
     { id: 'meeting', label: 'Meetings', gradient: 'from-emerald-500 to-emerald-600' },
     { id: 'calendar', label: 'Calendar', gradient: 'from-orange-500 to-orange-600' }
@@ -389,6 +457,16 @@ const ParentDashboard = ({ user, handleLogout }) => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
                 )}
+                {tab.id === 'students' && (
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                )}
+                {tab.id === 'overview' && (
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                  </svg>
+                )}
                 </div>
                 <span className="font-medium">{tab.label}</span>
               </button>
@@ -431,13 +509,17 @@ const ParentDashboard = ({ user, handleLogout }) => {
               
               <div>
                 <h2 className="text-2xl font-bold text-gray-900">
+                  {activeTab === 'overview' && 'Overview'}
                   {activeTab === 'Report Cards' && 'Academic Reports'}
+                  {activeTab === 'students' && 'My Students'}
                   {activeTab === 'chat' && 'AI Assistant Chat'}
                   {activeTab === 'meeting' && 'Parent-Teacher Meetings'}
                   {activeTab === 'calendar' && 'Event Calendar'}
                 </h2>
                 <p className="text-sm text-gray-500 mt-1">
+                  {activeTab === 'overview' && 'View your dashboard overview and quick access to all features'}
                   {activeTab === 'Report Cards' && 'View your child\'s academic performance'}
+                  {activeTab === 'students' && 'View your children\'s information and details'}
                   {activeTab === 'chat' && 'Get instant answers about your child\'s education'}
                   {activeTab === 'meeting' && 'Schedule and manage meetings with teachers'}
                   {activeTab === 'calendar' && 'View upcoming events and sessions'}
@@ -447,6 +529,10 @@ const ParentDashboard = ({ user, handleLogout }) => {
             
             {/* Quick Stats */}
             <div className="flex gap-4">
+              <div className="text-right">
+                <p className="text-xs text-gray-500">Students</p>
+                <p className="text-2xl font-bold text-blue-600">{studentData?.length || 0}</p>
+              </div>
               <div className="text-right">
                 <p className="text-xs text-gray-500">Report Cards</p>
                 <p className="text-2xl font-bold text-indigo-600">{reportCards.length}</p>
@@ -467,6 +553,439 @@ const ParentDashboard = ({ user, handleLogout }) => {
         <div className="flex-1 overflow-y-auto overflow-x-hidden bg-gray-50 p-8 min-h-0">
 
           {/* Content Sections */}
+          {activeTab === 'overview' && (
+            <div className="space-y-6 animate-fadeIn">
+              {/* Profile Section */}
+              {(parentProfile || user) && (
+                <div className="bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200 rounded-xl p-6 shadow-md">
+                  <h3 className="text-xl font-bold text-gray-900 mb-4">Profile Information</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div>
+                      <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-1">Full Name</p>
+                      <p className="text-gray-900 font-semibold">{parentProfile?.full_name || user?.full_name || 'N/A'}</p>
+                    </div>
+                    {parentProfile?.parent_id && (
+                      <div>
+                        <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-1">Parent ID</p>
+                        <p className="text-gray-900 font-semibold">{parentProfile.parent_id}</p>
+                      </div>
+                    )}
+                    {user?.user_id && (
+                      <div>
+                        <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-1">User ID</p>
+                        <p className="text-gray-900 font-semibold">{user.user_id}</p>
+                      </div>
+                    )}
+                    {(parentProfile?.phone || user?.phone) && (
+                      <div>
+                        <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-1">Phone</p>
+                        <p className="text-gray-900 font-semibold">{parentProfile?.phone || user?.phone}</p>
+                      </div>
+                    )}
+                    {parentProfile?.whatsapp_number && (
+                      <div>
+                        <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-1">WhatsApp</p>
+                        <p className="text-gray-900 font-semibold">{parentProfile.whatsapp_number}</p>
+                      </div>
+                    )}
+                    {(parentProfile?.email || user?.email) && (
+                      <div>
+                        <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-1">Email</p>
+                        <p className="text-gray-900 font-semibold">{parentProfile?.email || user?.email}</p>
+                      </div>
+                    )}
+                    {parentProfile?.occupation && (
+                      <div>
+                        <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-1">Occupation</p>
+                        <p className="text-gray-900 font-semibold">{parentProfile.occupation}</p>
+                      </div>
+                    )}
+                    {parentProfile?.annual_income_range && (
+                      <div>
+                        <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-1">Annual Income</p>
+                        <p className="text-gray-900 font-semibold">{parentProfile.annual_income_range}</p>
+                      </div>
+                    )}
+                    {parentProfile?.education_level && (
+                      <div>
+                        <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-1">Education Level</p>
+                        <p className="text-gray-900 font-semibold">{parentProfile.education_level}</p>
+                      </div>
+                    )}
+                    {(parentProfile?.address_line1 || parentProfile?.city || parentProfile?.state) && (
+                      <div className="md:col-span-2 lg:col-span-3">
+                        <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-1">Address</p>
+                        <p className="text-gray-900 font-semibold">
+                          {[parentProfile.address_line1, parentProfile.address_line2, parentProfile.city, parentProfile.state, parentProfile.pincode]
+                            .filter(Boolean)
+                            .join(', ')}
+                        </p>
+                      </div>
+                    )}
+                    {user?.school_name && (
+                      <div>
+                        <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-1">School</p>
+                        <p className="text-gray-900 font-semibold">{user.school_name}</p>
+                      </div>
+                    )}
+                    {user?.branch_name && (
+                      <div>
+                        <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-1">Branch</p>
+                        <p className="text-gray-900 font-semibold">{user.branch_name}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Quick Stats Summary */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="bg-white border-2 border-blue-200 rounded-xl p-6 shadow-md">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-1">Total Students</p>
+                      <p className="text-gray-900 text-3xl font-bold">{studentData?.length || 0}</p>
+                    </div>
+                    <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                      <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white border-2 border-indigo-200 rounded-xl p-6 shadow-md">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-1">Report Cards</p>
+                      <p className="text-gray-900 text-3xl font-bold">{reportCards.length}</p>
+                    </div>
+                    <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center">
+                      <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white border-2 border-emerald-200 rounded-xl p-6 shadow-md">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-1">Meetings</p>
+                      <p className="text-gray-900 text-3xl font-bold">{ptmBookings.length}</p>
+                    </div>
+                    <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
+                      <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white border-2 border-orange-200 rounded-xl p-6 shadow-md">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-1">Sessions</p>
+                      <p className="text-gray-900 text-3xl font-bold">{ptmSessions.length}</p>
+                    </div>
+                    <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                      <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Recent Students Preview */}
+              {studentData && studentData.length > 0 && (
+                <div className="bg-white border-2 border-blue-200 rounded-xl p-6 shadow-md">
+                  <h3 className="text-xl font-bold text-gray-900 mb-4">My Students</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {studentData.slice(0, 3).map((student, idx) => (
+                      <div key={student.student_id || idx} className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="font-bold text-gray-900">{student.full_name || student.student_name || 'Student'}</h4>
+                          {student.current_status && (
+                            <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                              student.current_status === 'ACTIVE' 
+                                ? 'bg-green-100 text-green-800' 
+                                : 'bg-gray-100 text-gray-800'
+                            }`}>
+                              {student.current_status}
+                            </span>
+                          )}
+                        </div>
+                        {student.admission_class && (
+                          <p className="text-sm text-gray-600">Class: {student.admission_class}</p>
+                        )}
+                        {student.admission_number && (
+                          <p className="text-xs text-gray-500 mt-1">Admission: {student.admission_number}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  {studentData.length > 3 && (
+                    <div className="mt-4 text-center">
+                      <p className="text-sm text-gray-600">And {studentData.length - 3} more student{studentData.length - 3 > 1 ? 's' : ''}...</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Quick Links */}
+              <div className="bg-white border-2 border-purple-200 rounded-xl p-6 shadow-md">
+                <h3 className="text-xl font-bold text-gray-900 mb-4">Quick Access</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <button
+                    onClick={() => setActiveTab('students')}
+                    className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-4 rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-200 shadow-md hover:shadow-lg text-left"
+                  >
+                    <div className="flex items-center gap-3 mb-2">
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                      </svg>
+                      <span className="font-semibold">View Students</span>
+                    </div>
+                    <p className="text-sm text-blue-100">See all student details</p>
+                  </button>
+
+                  <button
+                    onClick={() => setActiveTab('Report Cards')}
+                    className="bg-gradient-to-r from-indigo-500 to-indigo-600 text-white p-4 rounded-lg hover:from-indigo-600 hover:to-indigo-700 transition-all duration-200 shadow-md hover:shadow-lg text-left"
+                  >
+                    <div className="flex items-center gap-3 mb-2">
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                      </svg>
+                      <span className="font-semibold">Report Cards</span>
+                    </div>
+                    <p className="text-sm text-indigo-100">View academic reports</p>
+                  </button>
+
+                  <button
+                    onClick={() => setActiveTab('meeting')}
+                    className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white p-4 rounded-lg hover:from-emerald-600 hover:to-emerald-700 transition-all duration-200 shadow-md hover:shadow-lg text-left"
+                  >
+                    <div className="flex items-center gap-3 mb-2">
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      <span className="font-semibold">Meetings</span>
+                    </div>
+                    <p className="text-sm text-emerald-100">PTM bookings</p>
+                  </button>
+
+                  <button
+                    onClick={() => setActiveTab('calendar')}
+                    className="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-4 rounded-lg hover:from-orange-600 hover:to-orange-700 transition-all duration-200 shadow-md hover:shadow-lg text-left"
+                  >
+                    <div className="flex items-center gap-3 mb-2">
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      <span className="font-semibold">Calendar</span>
+                    </div>
+                    <p className="text-sm text-orange-100">View events</p>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'students' && (
+            <div className="animate-fadeIn">
+              {loadingStudents ? (
+                <div className="text-center py-12">
+                  <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+                  <p className="text-gray-600 font-medium">Loading student information...</p>
+                </div>
+              ) : studentData && studentData.length > 0 ? (
+                <div className="space-y-6">
+                  {/* Summary Card */}
+                  <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-blue-100 text-sm font-medium mb-1">Total Students</p>
+                        <p className="text-4xl font-bold">{studentData.length}</p>
+                      </div>
+                      <div className="w-16 h-16 bg-white/20 rounded-xl flex items-center justify-center">
+                        <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Students Grid */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {studentData.map((student, idx) => (
+                      <div key={student.student_id || student.id || idx} className="bg-white border-2 border-blue-200 rounded-xl p-6 shadow-md">
+                        <div className="flex justify-between items-start mb-4">
+                          <h3 className="text-xl font-bold text-gray-900">Student Information</h3>
+                          {student.current_status && (
+                            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                              student.current_status === 'ACTIVE' 
+                                ? 'bg-green-100 text-green-800' 
+                                : 'bg-gray-100 text-gray-800'
+                            }`}>
+                              {student.current_status}
+                            </span>
+                          )}
+                        </div>
+                        
+                        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-1">Full Name</p>
+                              <p className="text-gray-900 font-semibold">{student.full_name || student.student_name || 'N/A'}</p>
+                            </div>
+                            
+                            {student.student_id && (
+                              <div>
+                                <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-1">Student ID</p>
+                                <p className="text-gray-900 font-semibold">{student.student_id}</p>
+                              </div>
+                            )}
+                            
+                            {student.admission_number && (
+                              <div>
+                                <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-1">Admission Number</p>
+                                <p className="text-gray-900 font-semibold">{student.admission_number}</p>
+                              </div>
+                            )}
+                            
+                            {student.roll_number && (
+                              <div>
+                                <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-1">Roll Number</p>
+                                <p className="text-gray-900 font-semibold">{student.roll_number}</p>
+                              </div>
+                            )}
+                            
+                            {student.admission_class && (
+                              <div>
+                                <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-1">Admission Class</p>
+                                <p className="text-gray-900 font-semibold">{student.admission_class}</p>
+                              </div>
+                            )}
+                            
+                            {student.current_class && (
+                              <div>
+                                <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-1">Current Class</p>
+                                <p className="text-gray-900 font-semibold">{student.current_class}</p>
+                              </div>
+                            )}
+                            
+                            {student.gender && (
+                              <div>
+                                <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-1">Gender</p>
+                                <p className="text-gray-900 font-semibold">{student.gender}</p>
+                              </div>
+                            )}
+                            
+                            {student.date_of_birth && (
+                              <div>
+                                <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-1">Date of Birth</p>
+                                <p className="text-gray-900 font-semibold">
+                                  {new Date(student.date_of_birth).toLocaleDateString('en-US', { 
+                                    year: 'numeric', 
+                                    month: 'long', 
+                                    day: 'numeric' 
+                                  })}
+                                </p>
+                              </div>
+                            )}
+                            
+                            {student.email && (
+                              <div>
+                                <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-1">Email</p>
+                                <p className="text-gray-900 font-semibold">{student.email}</p>
+                              </div>
+                            )}
+                            
+                            {student.phone && (
+                              <div>
+                                <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-1">Phone</p>
+                                <p className="text-gray-900 font-semibold">{student.phone}</p>
+                              </div>
+                            )}
+                            
+                            {student.blood_group && (
+                              <div>
+                                <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-1">Blood Group</p>
+                                <p className="text-gray-900 font-semibold">{student.blood_group}</p>
+                              </div>
+                            )}
+                            
+                            {student.aadhar_number && (
+                              <div>
+                                <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-1">Aadhar Number</p>
+                                <p className="text-gray-900 font-semibold">{student.aadhar_number}</p>
+                              </div>
+                            )}
+                            
+                            {student.school_name && (
+                              <div className="md:col-span-2">
+                                <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-1">School</p>
+                                <p className="text-gray-900 font-semibold">{student.school_name}</p>
+                              </div>
+                            )}
+                            
+                            {student.branch_name && (
+                              <div className="md:col-span-2">
+                                <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-1">Branch</p>
+                                <p className="text-gray-900 font-semibold">{student.branch_name}</p>
+                              </div>
+                            )}
+                            
+                            {(student.address_line1 || student.city || student.state) && (
+                              <div className="md:col-span-2">
+                                <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-1">Address</p>
+                                <p className="text-gray-900 font-semibold">
+                                  {[student.address_line1, student.address_line2, student.city, student.state, student.pincode]
+                                    .filter(Boolean)
+                                    .join(', ')}
+                                </p>
+                              </div>
+                            )}
+                            
+                            {student.medical_conditions && (
+                              <div className="md:col-span-2">
+                                <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-1">Medical Conditions</p>
+                                <p className="text-gray-900 font-semibold">{student.medical_conditions}</p>
+                              </div>
+                            )}
+                            
+                            {student.emergency_contact_name && (
+                              <div>
+                                <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-1">Emergency Contact</p>
+                                <p className="text-gray-900 font-semibold">{student.emergency_contact_name}</p>
+                                {student.emergency_contact_phone && (
+                                  <p className="text-gray-600 text-sm">{student.emergency_contact_phone}</p>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-16 bg-white rounded-xl shadow-md border border-gray-200">
+                  <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-blue-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg className="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                  </div>
+                  <h4 className="text-xl font-bold text-gray-900 mb-2">No Students Found</h4>
+                  <p className="text-gray-600 mb-1">No student information is available at this time.</p>
+                  <p className="text-sm text-gray-500">Please contact the school administration if you believe this is an error.</p>
+                </div>
+              )}
+            </div>
+          )}
+
           {activeTab === 'Report Cards' && (
             <div className="space-y-6">
                 

@@ -167,9 +167,22 @@ const SchoolRegistration = () => {
         rte_compliance: schoolForm.rte_compliance
       }
       
+      const token = localStorage.getItem('token')
       const response = await axios.post(`${API_BASE_URL}/schools/register`, payload, {
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        }
       })
+      
+      // Store token if provided in response
+      if (response.data?.token) {
+        localStorage.setItem('token', response.data.token)
+        console.log('Token stored after school registration')
+      } else if (response.data?.data?.token) {
+        localStorage.setItem('token', response.data.data.token)
+        console.log('Token stored after school registration')
+      }
       
       // Show SweetAlert2 success message
       const Swal = await loadSwal()

@@ -13,20 +13,22 @@ const StudentDashboard = ({ user, handleLogout }) => {
   const tabs = [
     { id: 'overview', label: 'Overview', gradient: 'from-purple-500 to-purple-600', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
     { id: 'courses', label: 'My Courses', gradient: 'from-blue-500 to-blue-600', icon: 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253' },
-    { id: 'assignments', label: 'Assignments', gradient: 'from-orange-500 to-orange-600', icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
+    { id: 'assignments', label: 'Fees & Payments', gradient: 'from-orange-500 to-orange-600', icon: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z' },
     { id: 'grades', label: 'Grades', gradient: 'from-green-500 to-green-600', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' },
-    { id: 'timetable', label: 'Timetable', gradient: 'from-indigo-500 to-indigo-600', icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' },
-    { id: 'materials', label: 'Study Materials', gradient: 'from-pink-500 to-pink-600', icon: 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253' }
+    { id: 'timetable', label: 'Attendance', gradient: 'from-indigo-500 to-indigo-600', icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' },
+    { id: 'materials', label: 'Circulars', gradient: 'from-pink-500 to-pink-600', icon: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9' },
+    { id: 'parents', label: 'Parents', gradient: 'from-teal-500 to-teal-600', icon: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z' }
   ]
 
   const getTabTitle = (tab) => {
     const titles = {
       'overview': 'Overview',
       'courses': 'My Courses',
-      'assignments': 'Assignments',
+      'assignments': 'Fees & Payments',
       'grades': 'Grades',
-      'timetable': 'Timetable',
-      'materials': 'Study Materials'
+      'timetable': 'Attendance',
+      'materials': 'Circulars',
+      'parents': 'Parents'
     }
     return titles[tab] || 'Student Dashboard'
   }
@@ -35,10 +37,11 @@ const StudentDashboard = ({ user, handleLogout }) => {
     const descriptions = {
       'overview': 'View your academic overview and quick access to all features',
       'courses': 'View your enrolled courses and class schedules',
-      'assignments': 'Submit and track your assignment submissions',
+      'assignments': 'View fee summary and upcoming payment details',
       'grades': 'Check your academic performance and grades',
-      'timetable': 'View your daily class schedule and timetable',
-      'materials': 'Access study materials and resources'
+      'timetable': 'View your attendance records and monthly summary',
+      'materials': 'View circulars and notifications from school',
+      'parents': 'View parent information and contact details'
     }
     return descriptions[tab] || 'Manage your academic activities'
   }
@@ -73,8 +76,8 @@ const StudentDashboard = ({ user, handleLogout }) => {
         
         console.log('User API Response:', userResponse.data)
         
-        // Step 2: Extract student_id from the response
-        const studentId = userResponse.data?.student?.[0]?.student_id
+        // Step 2: Extract student_id from the response (student is an object, not array)
+        const studentId = userResponse.data?.student?.student_id || userResponse.data?.studentProfile?.student_id
         if (!studentId) {
           console.warn('Student ID not found in user response:', userResponse.data)
           setError('Student ID not found in user profile')
@@ -94,7 +97,15 @@ const StudentDashboard = ({ user, handleLogout }) => {
         })
         
         console.log('Student Dashboard API Response:', dashboardResponse.data)
-        setDashboardData(dashboardResponse.data)
+        
+        // Merge user API response data (which has studentParents) with dashboard response
+        const mergedData = {
+          ...dashboardResponse.data,
+          // Include parent data from user API response if not in dashboard response
+          studentParents: dashboardResponse.data?.studentParents || userResponse.data?.studentParents || []
+        }
+        
+        setDashboardData(mergedData)
       } catch (err) {
         console.error('Error fetching student dashboard data:', err)
         setError(err.response?.data?.message || 'Failed to load dashboard data')
@@ -118,14 +129,14 @@ const StudentDashboard = ({ user, handleLogout }) => {
             <div className="p-6 border-b border-purple-600 flex-shrink-0">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                  <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14v9" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9l.01 0" />
-                  </svg>
-                </div>
-                <div>
+                <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14v9" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9l.01 0" />
+                </svg>
+              </div>
+              <div>
                   <h1 className="text-lg font-bold">Student Portal</h1>
                   <p className="text-xs text-purple-200">Dashboard</p>
                 </div>
@@ -170,8 +181,8 @@ const StudentDashboard = ({ user, handleLogout }) => {
         {/* Logout Button - Fixed at bottom */}
         {sidebarOpen && (
           <div className="p-4 border-t border-purple-600 flex-shrink-0 bg-gradient-to-b from-purple-700 to-pink-700">
-            <button
-              onClick={handleLogout}
+            <button 
+              onClick={handleLogout} 
               className="w-full px-6 py-3 bg-white/20 hover:bg-white/30 rounded-lg flex items-center justify-center gap-3 transition-all duration-200 font-medium"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -207,9 +218,9 @@ const StudentDashboard = ({ user, handleLogout }) => {
                 <p className="text-sm text-gray-500 mt-1">
                   {getTabDescription(activeTab)}
                 </p>
-              </div>
-            </div>
-            
+        </div>
+      </div>
+
             {/* Quick Stats */}
             <div className="flex gap-4">
               <div className="text-right">
@@ -253,8 +264,8 @@ const StudentDashboard = ({ user, handleLogout }) => {
             </div>
           ) : (
             <>
-          {/* Statistics Cards - Modern Design */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {/* Statistics Cards - Modern Design */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {/* Attendance Card */}
           <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 relative overflow-hidden group">
             <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-purple-100 to-purple-200 rounded-full -mr-10 -mt-10 opacity-50 group-hover:opacity-70 transition-opacity"></div>
@@ -318,7 +329,7 @@ const StudentDashboard = ({ user, handleLogout }) => {
               </p>
             </div>
           </div>
-          </div>
+        </div>
 
           {/* Tab Content */}
           <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
@@ -511,8 +522,8 @@ const StudentDashboard = ({ user, handleLogout }) => {
                             </span>
                           </div>
                         </div>
-                      ))}
-                    </div>
+            ))}
+          </div>
                   </div>
                 )}
 
@@ -582,11 +593,11 @@ const StudentDashboard = ({ user, handleLogout }) => {
                             <div>
                               <p className="text-xs text-gray-500 font-semibold">Amount Paid</p>
                               <p className="text-sm font-bold text-green-600">₹{payment.amount_paid}</p>
-                            </div>
+                </div>
                             <div>
                               <p className="text-xs text-gray-500 font-semibold">Balance</p>
                               <p className="text-sm font-bold text-red-600">₹{payment.balance_amount}</p>
-                            </div>
+                </div>
                             {payment.payment_date && (
                               <div>
                                 <p className="text-xs text-gray-500 font-semibold">Payment Date</p>
@@ -596,15 +607,15 @@ const StudentDashboard = ({ user, handleLogout }) => {
                                     day: 'numeric' 
                                   })}
                                 </p>
-                              </div>
+                </div>
                             )}
-                          </div>
+                </div>
                           {payment.payment_mode && (
                             <p className="text-xs text-gray-500 mt-2">Payment Mode: {payment.payment_mode}</p>
                           )}
-                        </div>
+                </div>
                       ))}
-                    </div>
+                </div>
                   </div>
                 )}
 
@@ -706,8 +717,8 @@ const StudentDashboard = ({ user, handleLogout }) => {
                     </div>
                   </div>
                 ) : (
-                  <div className="text-center py-12">
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">My Courses</h3>
+              <div className="text-center py-12">
+                <h3 className="text-xl font-bold text-gray-900 mb-2">My Courses</h3>
                     <p className="text-gray-600">No enrollment information available</p>
                   </div>
                 )}
@@ -902,8 +913,8 @@ const StudentDashboard = ({ user, handleLogout }) => {
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-12">
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">Grades</h3>
+              <div className="text-center py-12">
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Grades</h3>
                     <p className="text-gray-600">No report cards available yet</p>
                   </div>
                 )}
@@ -1067,7 +1078,7 @@ const StudentDashboard = ({ user, handleLogout }) => {
                       ))}
                     </div>
                   ) : (
-                    <div className="text-center py-12">
+              <div className="text-center py-12">
                       <div className="text-6xl mb-4">📢</div>
                       <h4 className="text-xl font-bold text-gray-900 mb-2">No Circulars</h4>
                       <p className="text-gray-600">No circulars or notifications available</p>
@@ -1076,7 +1087,134 @@ const StudentDashboard = ({ user, handleLogout }) => {
                 </div>
               </div>
             )}
-            </div>
+
+            {activeTab === 'parents' && (
+              <div className="animate-fadeIn">
+                {dashboardData?.studentParents && dashboardData.studentParents.length > 0 ? (
+                  <div className="space-y-6">
+                    {dashboardData.studentParents.map((parent, idx) => (
+                      <div key={parent.parent_id || idx} className="bg-white border-2 border-teal-200 rounded-xl p-6 shadow-md">
+                        <div className="flex justify-between items-start mb-4">
+                          <h3 className="text-xl font-bold text-gray-900">Parent Information</h3>
+                          {parent.relationship_type && (
+                            <span className="bg-teal-500 text-white px-3 py-1 rounded-full text-xs font-semibold">
+                              {parent.relationship_type}
+                            </span>
+                          )}
+                        </div>
+                        
+                        <div className="bg-gradient-to-r from-teal-50 to-cyan-50 border border-teal-200 rounded-lg p-6">
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div>
+                              <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-1">Full Name</p>
+                              <p className="text-gray-900 font-semibold">{parent.full_name || 'N/A'}</p>
+                            </div>
+                            
+                            {parent.parent_id && (
+                              <div>
+                                <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-1">Parent ID</p>
+                                <p className="text-gray-900 font-semibold">{parent.parent_id}</p>
+                              </div>
+                            )}
+                            
+                            {parent.parent_user_id && (
+                              <div>
+                                <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-1">User ID</p>
+                                <p className="text-gray-900 font-semibold">{parent.parent_user_id}</p>
+                              </div>
+                            )}
+                            
+                            {parent.phone && (
+                              <div>
+                                <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-1">Phone</p>
+                                <p className="text-gray-900 font-semibold">{parent.phone}</p>
+                              </div>
+                            )}
+                            
+                            {parent.whatsapp_number && (
+                              <div>
+                                <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-1">WhatsApp</p>
+                                <p className="text-gray-900 font-semibold">{parent.whatsapp_number}</p>
+                              </div>
+                            )}
+                            
+                            {parent.email && (
+                              <div>
+                                <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-1">Email</p>
+                                <p className="text-gray-900 font-semibold">{parent.email}</p>
+                              </div>
+                            )}
+                            
+                            {parent.occupation && (
+                              <div>
+                                <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-1">Occupation</p>
+                                <p className="text-gray-900 font-semibold">{parent.occupation}</p>
+                              </div>
+                            )}
+                            
+                            {parent.annual_income_range && (
+                              <div>
+                                <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-1">Annual Income</p>
+                                <p className="text-gray-900 font-semibold">{parent.annual_income_range}</p>
+                              </div>
+                            )}
+                            
+                            {parent.education_level && (
+                              <div>
+                                <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-1">Education Level</p>
+                                <p className="text-gray-900 font-semibold">{parent.education_level}</p>
+                              </div>
+                            )}
+                            
+                            {(parent.address_line1 || parent.city || parent.state) && (
+                              <div className="md:col-span-2 lg:col-span-3">
+                                <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-1">Address</p>
+                                <p className="text-gray-900 font-semibold">
+                                  {[parent.address_line1, parent.address_line2, parent.city, parent.state, parent.pincode]
+                                    .filter(Boolean)
+                                    .join(', ')}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                          
+                          {/* Relationship Flags */}
+                          {(parent.is_primary_contact || parent.is_fee_responsible || parent.is_emergency_contact) && (
+                            <div className="mt-4 pt-4 border-t border-teal-200">
+                              <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-2">Roles</p>
+                              <div className="flex flex-wrap gap-2">
+                                {parent.is_primary_contact && (
+                                  <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-semibold">
+                                    Primary Contact
+                                  </span>
+                                )}
+                                {parent.is_fee_responsible && (
+                                  <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-semibold">
+                                    Fee Responsible
+                                  </span>
+                                )}
+                                {parent.is_emergency_contact && (
+                                  <span className="bg-red-100 text-red-800 px-2 py-1 rounded text-xs font-semibold">
+                                    Emergency Contact
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <div className="text-6xl mb-4">👨‍👩‍👧‍👦</div>
+                    <h4 className="text-xl font-bold text-gray-900 mb-2">No Parent Information</h4>
+                    <p className="text-gray-600">No parent details available at this time</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
           </div>
             </>
           )}

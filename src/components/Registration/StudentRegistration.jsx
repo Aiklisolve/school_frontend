@@ -375,9 +375,18 @@ const StudentRegistration = () => {
       const response = await axios.post(`${API_BASE_URL}/students/register`, payload, {
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
         }
       })
+      
+      // Store token if provided in response
+      if (response.data?.token) {
+        localStorage.setItem('token', response.data.token)
+        console.log('Token stored after student registration')
+      } else if (response.data?.data?.token) {
+        localStorage.setItem('token', response.data.data.token)
+        console.log('Token stored after student registration')
+      }
       
       // Show SweetAlert2 success message
       const Swal = await loadSwal()

@@ -196,8 +196,10 @@ const Login = () => {
         }
       } else {
         // Teacher, Student, Admin, Staff: Validate credentials via API
+        // Convert email to lowercase before sending to backend
+        const emailLowercase = formData.email.toLowerCase().trim()
         const result = await validateCredentials(
-          formData.email,
+          emailLowercase,
           formData.password,
           formData.userType
         )
@@ -248,7 +250,8 @@ const Login = () => {
         // Prepend +91 country code when sending to API
         loginData.mobile = `+91${formData.mobile}`
       } else {
-        loginData.email = formData.email
+        // Convert email to lowercase before sending to backend
+        loginData.email = formData.email.toLowerCase().trim()
       }
 
       const result = await finalLogin(loginData)
